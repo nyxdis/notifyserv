@@ -19,6 +19,6 @@ autoheader || exit 1
 echo "Running autoconf"
 autoconf || exit 1
 echo "Running automake --add-missing"
-automake --add-missing || exit 1
+automake --add-missing --copy --foreign || exit 1
 echo "Running ${source_dir}/configure $@"
 cd ${master_dir} && ${source_dir}/configure "$@"
