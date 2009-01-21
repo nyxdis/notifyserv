@@ -90,16 +90,10 @@ void irc_parse(char *string)
 			notify_log(INFO,"[IRC] Connected.");
 			for(i=0;prefs.irc_chans[i] != NULL;i++)
 			{
-<<<<<<< HEAD:src/notify-irc.c
 				notify_log(INFO,"[IRC] Joining %s.",prefs.irc_chans[i]);
 				asprintf(&tmp,"JOIN %s",prefs.irc_chans[i]);
 				irc_write(tmp);
 				free(tmp);
-=======
-				if(verbosity > 1) fprintf(fp,"IRC: Joining %s\n",chanv[i]);
-				sprintf(buffer,"JOIN %s\r\n",chanv[i]);
-				write(irc_sockfd,buffer,strlen(buffer));
->>>>>>> 446575a2f9ee60bdc63a7e49402e12781d01c6fd:src/notify-irc.c
 			}
 			continue;
 		}
