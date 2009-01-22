@@ -60,6 +60,12 @@ void irc_parse(char *string)
 
 	line = strtok_r(string,"\n",&saveptr);
 	do {
+		if(strncmp(line,"ERROR :",7) == 0) {
+			notify_log(DEBUG,"[IRC] Received error: %s",&line[7]);
+			cleanup();
+			exit(EXIT_FAILURE);
+		}
+
 		asprintf(&tmp,"433 * %s :Nickname is already in use.\r\n",prefs.irc_nick);
 		if(strstr(line,tmp)) {
 			free(tmp);
@@ -74,7 +80,7 @@ void irc_parse(char *string)
 			asprintf(&channel,"#%s",tmp);
 		}
 
-		if(strncmp(line,"PING :",6))
+		if(strncmp(line,"PING :",6) == 0)
 		{
 			notify_log(DEBUG,"[IRC] Sending PONG :%s.",&line[6]);
 			asprintf(&tmp,"PONG :%s",&line[6]);
@@ -152,7 +158,7 @@ void irc_parse(char *string)
 			cleanup();
 			//execv(argv[0],argv);
 		}
-	} while((line = strtok_r(string,"\n",&saveptr)) != NULL);
+	} while((line = strtok_r(NULL,"\n",&saveptr)) != NULL);
 
 	free(channel);
 }
