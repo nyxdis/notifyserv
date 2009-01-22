@@ -68,14 +68,18 @@ void irc_parse(char *string)
 
 		asprintf(&tmp,"433 * %s :Nickname is already in use.\r",prefs.irc_nick);
 		if(strstr(line,tmp)) {
+			free(tmp);
 			notify_log(ERROR,"[IRC] Nickname is already in use.");
 			cleanup();
 			exit(EXIT_FAILURE);
 		}
 		free(tmp);
 
-		if(strtok(line,"#") != NULL) {
+		if(strstr(line,"#")) {
+			channel = strdup(line);
+			strtok(channel,"#");
 			tmp = strtok(NULL," ");
+			free(channel);
 			asprintf(&channel,"#%s",tmp);
 		}
 
