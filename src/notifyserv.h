@@ -6,9 +6,12 @@
  */
 
 
+#include <stdbool.h>
+
 #include "config.h"
 #include "misc.h"
 #include "irc.h"
+#include "listen.h"
 
 struct preferences {
 	char *irc_server;
@@ -19,14 +22,16 @@ struct preferences {
 	char *bind_address;
 	int bind_port;
 	char *sock_path;
-	unsigned int verbosity;
+	bool fork;
+	unsigned short verbosity;
 } prefs;
 
 struct notify_info {
 	int irc_sockfd;
-	int listen_sockfd;
+	int listen_unix_sockfd;
+	int listen_tcp_sockfd;
 	FILE *log_fp;
 } notify_info;
 
 /* clean up sockets */
-void cleanup();
+void cleanup(void);

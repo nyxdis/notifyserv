@@ -3,6 +3,7 @@ dist_man_MANS = notifyserv.1
 
 notifyserv_SOURCES =	src/notifyserv.c src/notifyserv.h \
 			src/irc.c src/irc.h \
+			src/listen.c src/listen.h \
 			src/misc.c src/misc.h
 
 notifyserv.1: src/notifyserv.c
