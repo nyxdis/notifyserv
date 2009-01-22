@@ -8,7 +8,7 @@
 
 #include "config.h"
 #include "misc.h"
-#include "notify-irc.h"
+#include "irc.h"
 
 struct preferences {
 	char *irc_server;

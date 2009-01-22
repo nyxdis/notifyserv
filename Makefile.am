@@ -1,9 +1,9 @@
 bin_PROGRAMS = notifyserv
 dist_man_MANS = notifyserv.1
 
-notifyserv_SOURCES =	src/misc.c src/misc.h \
-			src/notifyserv.c src/notifyserv.h \
-			src/notify-irc.c src/notify-irc.h
+notifyserv_SOURCES =	src/notifyserv.c src/notifyserv.h \
+			src/irc.c src/irc.h \
+			src/misc.c src/misc.h
 
 notifyserv.1: src/notifyserv.c
 		$(MAKE) $(AM_MAKEFLAGS) notifyserv$(EXEEXT)
