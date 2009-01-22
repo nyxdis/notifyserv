@@ -55,7 +55,7 @@ int irc_connect(void)
 
 void irc_parse(char *string)
 {
-	char *channel, *line, *saveptr, *tmp;
+	char *channel = NULL, *line, *saveptr, *tmp;
 	int i;
 
 	line = strtok_r(string,"\n",&saveptr);
@@ -68,7 +68,6 @@ void irc_parse(char *string)
 
 		asprintf(&tmp,"433 * %s :Nickname is already in use.\r\n",prefs.irc_nick);
 		if(strstr(line,tmp)) {
-			free(tmp);
 			notify_log(ERROR,"[IRC] Nickname is already in use.");
 			cleanup();
 			exit(EXIT_FAILURE);
@@ -86,65 +85,59 @@ void irc_parse(char *string)
 			asprintf(&tmp,"PONG :%s",&line[6]);
 			irc_write(tmp);
 			free(tmp);
-			continue;
 		}
 
 		asprintf(&tmp,"001 %s :Welcome to the",prefs.irc_nick);
 		if(strstr(line,tmp))
 		{
-			free(tmp);
 			notify_log(INFO,"[IRC] Connected.");
 			for(i=0;prefs.irc_chans[i] != NULL;i++)
 			{
+				free(tmp);
 				notify_log(INFO,"[IRC] Joining %s.",prefs.irc_chans[i]);
 				asprintf(&tmp,"JOIN %s",prefs.irc_chans[i]);
 				irc_write(tmp);
-				free(tmp);
 			}
-			continue;
 		}
 		free(tmp);
 
 		asprintf(&tmp,"KICK %s %s :",channel,prefs.irc_nick);
 		if(strstr(line,tmp))
 		{
-			free(tmp);
 			notify_log(INFO,"[IRC] Kicked from %s, rejoining.",channel);
+			free(tmp);
 			asprintf(&tmp,"JOIN %s",channel);
 			irc_write(tmp);
-			free(tmp);
 		}
 		free(tmp);
 
 		asprintf(&tmp,"PRIVMSG %s :!ping\r\n",channel);
 		if(strstr(line,tmp))
 		{
-			free(tmp);
 			notify_log(DEBUG,"[IRC] %s pinged me, sending pong.",strtok(&line[1]," "));
+			free(tmp);
 			asprintf(&tmp,"%s: pong",strtok(&line[1],"!"));
 			irc_say(channel,tmp);
-			free(tmp);
-			continue;
 		}
 		free(tmp);
 
 		asprintf(&tmp,"PRIVMSG %s :!version\r\n",channel);
 		if(strstr(line,tmp))
 		{
-			free(tmp);
 			notify_log(DEBUG,"[IRC] %s asked for my version.",strtok(&line[1]," "));
+			free(tmp);
 			asprintf(&tmp,"This is %s",PACKAGE_STRING);
 			irc_say(channel,tmp);
-			free(tmp);
-			continue;
 		}
+		free(tmp);
 
 		asprintf(&tmp,"PRIVMSG %s :!die\r\n",channel);
 		if(strstr(line,tmp))
 		{
-			free(tmp);
 			notify_log(INFO,"Dying as requested by %s on IRC.",strtok(&line[1]," "));
 			irc_write("QUIT :Dying");
+			free(tmp);
+			free(channel);
 			cleanup();
 			exit(EXIT_SUCCESS);
 		}
@@ -154,11 +147,14 @@ void irc_parse(char *string)
 		if(strstr(line,tmp))
 		{
 			free(tmp);
+			free(channel);
 			notify_log(INFO,"Rebooting as requested by %s on IRC.",strtok(&line[1]," "));
 			cleanup();
 			//execv(argv[0],argv);
 		}
-	} while((line = strtok_r(NULL,"\n",&saveptr)) != NULL);
+		free(tmp);
 
-	free(channel);
+		if(channel != NULL)
+			free(channel);
+	} while((line = strtok_r(NULL,"\n",&saveptr)) != NULL);
 }
