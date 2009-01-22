@@ -149,7 +149,6 @@ int main(int argc, char *argv[])
 		if(notify_info.listen_unix_sockfd > 0) {
 			if(FD_ISSET(notify_info.listen_unix_sockfd,&read_flags)) {
 				FD_CLR(notify_info.listen_unix_sockfd,&read_flags);
-				notify_log(DEBUG,"Data on Unix domain socket");
 				len = sizeof(un_cli_addr);
 				client = accept(notify_info.listen_unix_sockfd,(struct sockaddr *)&un_cli_addr,&len);
 				sr = read(client,buf,sizeof(buf));
@@ -165,7 +164,6 @@ int main(int argc, char *argv[])
 		if(notify_info.listen_tcp_sockfd > 0) {
 			if(FD_ISSET(notify_info.listen_tcp_sockfd,&read_flags)) {
 				FD_CLR(notify_info.listen_tcp_sockfd,&read_flags);
-				notify_log(DEBUG,"Data on TCP socket");
 				len = sizeof(in_cli_addr);
 				client = accept(notify_info.listen_tcp_sockfd,(struct sockaddr *)&in_cli_addr,&len);
 				sr = read(client,buf,sizeof(buf));
