@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	sigaction(SIGTERM,&sa,NULL);
 	sigaction(SIGQUIT,&sa,NULL);
 
-	while((c = getopt(argc,argv,"c:dfhl:n:p:s:uvV")) != -1)
+	while((c = getopt(argc,argv,"c:dfhl:n:p:s:u:vV")) != -1)
 		switch(c)
 		{
 			case 'c':
@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
 				notify_log(DEBUG,"Data on Unix domain socket");
 				len = sizeof(un_cli_addr);
 				client = accept(notify_info.listen_unix_sockfd,(struct sockaddr *)&un_cli_addr,&len);
-				sr = read(notify_info.listen_unix_sockfd,buf,sizeof(buf));
+				sr = read(client,buf,sizeof(buf));
 				buf[sr-1] = '\0';
 				if(sr > 0) {
 					irc_say(prefs.irc_chans[0],buf);
@@ -201,7 +201,7 @@ void cleanup(void)
 	if(notify_info.listen_unix_sockfd > 0)
 		close(notify_info.listen_unix_sockfd);
 	free(prefs.irc_nick);
-	fclose(notify_info.log_fp);
+	if(prefs.fork == true) fclose(notify_info.log_fp);
 	if(prefs.sock_path != NULL) unlink(prefs.sock_path);
 	free(prefs.sock_path);
 }
