@@ -66,7 +66,7 @@ void irc_parse(char *string)
 			exit(EXIT_FAILURE);
 		}
 
-		asprintf(&tmp,"433 * %s :Nickname is already in use.\r\n",prefs.irc_nick);
+		asprintf(&tmp,"433 * %s :Nickname is already in use.\r",prefs.irc_nick);
 		if(strstr(line,tmp)) {
 			notify_log(ERROR,"[IRC] Nickname is already in use.");
 			cleanup();
@@ -111,7 +111,7 @@ void irc_parse(char *string)
 		}
 		free(tmp);
 
-		asprintf(&tmp,"PRIVMSG %s :!ping\r\n",channel);
+		asprintf(&tmp,"PRIVMSG %s :!ping\r",channel);
 		if(strstr(line,tmp))
 		{
 			notify_log(DEBUG,"[IRC] %s pinged me, sending pong.",strtok(&line[1]," "));
@@ -121,7 +121,7 @@ void irc_parse(char *string)
 		}
 		free(tmp);
 
-		asprintf(&tmp,"PRIVMSG %s :!version\r\n",channel);
+		asprintf(&tmp,"PRIVMSG %s :!version\r",channel);
 		if(strstr(line,tmp))
 		{
 			notify_log(DEBUG,"[IRC] %s asked for my version.",strtok(&line[1]," "));
@@ -131,7 +131,7 @@ void irc_parse(char *string)
 		}
 		free(tmp);
 
-		asprintf(&tmp,"PRIVMSG %s :!die\r\n",channel);
+		asprintf(&tmp,"PRIVMSG %s :!die\r",channel);
 		if(strstr(line,tmp))
 		{
 			notify_log(INFO,"Dying as requested by %s on IRC.",strtok(&line[1]," "));
@@ -143,7 +143,7 @@ void irc_parse(char *string)
 		}
 		free(tmp);
 
-		asprintf(&tmp,"PRIVMSG %s :!reboot\r\n",channel);
+		asprintf(&tmp,"PRIVMSG %s :!reboot\r",channel);
 		if(strstr(line,tmp))
 		{
 			free(tmp);
