@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <netdb.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/socket.h>
@@ -82,6 +83,7 @@ int start_listener(void)
 	if(prefs.bind_address != NULL) {
 		if((notify_info.listen_tcp_sockfd = listen_tcp()) < 0)
 			return -1;
+		free(prefs.bind_address);
 	}
 	if(prefs.sock_path == NULL && prefs.bind_address == NULL) {
 		notify_log(ERROR,"No Unix domain socket path defined and TCP sockets disabled.");
