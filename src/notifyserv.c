@@ -110,10 +110,14 @@ int main(int argc, char *argv[])
 
 	notify_log(INFO,"%s started",PACKAGE_STRING);
 
-	if(start_listener() < 0)
+	if(start_listener() < 0) {
+		notify_log(ERROR,"Failed to start listener: %s",strerror(errno));
 		exit(EXIT_FAILURE);
-	if(irc_connect() < 0)
+	}
+	if(irc_connect() < 0) {
+		notify_log(ERROR,"Failed to start listener: %s",strerror(errno));
 		exit(EXIT_FAILURE);
+	}
 
 	if(notify_info.irc_sockfd > notify_info.listen_tcp_sockfd)
 		c = notify_info.irc_sockfd;
@@ -147,10 +151,11 @@ int main(int argc, char *argv[])
 				len = sizeof(un_cli_addr);
 				client = accept(notify_info.listen_unix_sockfd,(struct sockaddr *)&un_cli_addr,&len);
 				sr = read(notify_info.listen_unix_sockfd,buf,sizeof(buf));
-				buf[sr] = '\0';
-				if(sr > 0)
-					printf("UNIX: %s",buf);
-				else
+				buf[sr-1] = '\0';
+				if(sr > 0) {
+					irc_say(prefs.irc_chans[0],buf);
+					notify_log(INFO,"Forwareded data from Unix domain socket to IRC: %s",buf);
+				} else
 					notify_log(ERROR,"Read failed: %s",strerror(errno));
 			}
 		}
@@ -162,10 +167,11 @@ int main(int argc, char *argv[])
 				len = sizeof(in_cli_addr);
 				client = accept(notify_info.listen_tcp_sockfd,(struct sockaddr *)&in_cli_addr,&len);
 				sr = read(client,buf,sizeof(buf));
-				buf[sr] = '\0';
-				if(sr > 0)
-					printf("TCP: %s",buf);
-				else
+				buf[sr-1] = '\0';
+				if(sr > 0) {
+					irc_say(prefs.irc_chans[0],buf);
+					notify_log(INFO,"Forwareded data from TCP socket to IRC: %s",buf);
+				} else
 					notify_log(ERROR,"Read failed: %s",strerror(errno));
 			}
 		}
