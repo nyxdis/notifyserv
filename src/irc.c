@@ -61,7 +61,7 @@ void irc_parse(char *string)
 	line = strtok_r(string,"\n",&saveptr);
 	do {
 		if(strncmp(line,"ERROR :",7) == 0) {
-			notify_log(DEBUG,"[IRC] Received error: %s",&line[7]);
+			notify_log(ERROR,"[IRC] Received error: %s",&line[7]);
 			cleanup();
 			exit(EXIT_FAILURE);
 		}
