@@ -24,10 +24,11 @@ int main(int argc, char *argv[])
 	struct sigaction sa;
 
 	/* Set defaults */
-	prefs.irc_port = 6667;
 	prefs.bind_address = strdup("localhost");
-	prefs.irc_nick = strdup(PACKAGE_NAME);
 	prefs.bind_port = 8675;
+	prefs.irc_nick = strdup(PACKAGE_NAME);
+	prefs.irc_port = 6667;
+	prefs.sock_path = strdup("/tmp/notifyserv");
 
 	/* Signal handler */
 	sa.sa_handler = sighandler;
@@ -37,11 +38,7 @@ int main(int argc, char *argv[])
 	sigaction(SIGTERM,&sa,NULL);
 	sigaction(SIGQUIT,&sa,NULL);
 
-	#ifdef UNIX_SOCKET
-	while((c = getopt(argc,argv,"c:hn:s:vV")) != -1)
-	#else
 	while((c = getopt(argc,argv,"c:hl:n:p:s:vV")) != -1)
-	#endif
 		switch(c)
 		{
 			case 'c':
@@ -51,14 +48,12 @@ int main(int argc, char *argv[])
 			case 'h':
 				print_usage(argv[0],EXIT_SUCCESS);
 				break;
-			#ifndef UNIX_SOCKET
 			case 'l':
 				prefs.bind_address = optarg;
 				break;
 			case 'p':
 				prefs.bind_port = atoi(optarg);
 				break;
-			#endif
 			case 'n':
 				prefs.irc_nick = optarg;
 				break;
@@ -107,10 +102,9 @@ void cleanup(void)
 	if(notify_info.irc_sockfd > 0) close(notify_info.irc_sockfd);
 	if(notify_info.listen_sockfd > 0) close(notify_info.listen_sockfd);
 	free(prefs.irc_nick);
+	free(prefs.sock_path);
 	fclose(notify_info.log_fp);
-	#ifdef UNIX_SOCKET
-	unlink(SOCK_PATH);
-	#endif
+	unlink(prefs.sock_path);
 }
 
 static void print_usage(const char *exec, int retval)
@@ -120,13 +114,9 @@ static void print_usage(const char *exec, int retval)
 	printf("Options:\n");
 	printf("\t-c <channel>\tOutput channel(s), may be given more than once\n");
 	printf("\t-h\t\tThis help\n");
-	#ifndef UNIX_SOCKET
 	printf("\t-l <address>\tListen on the specified address (optional, localhost by default)\n");
-	#endif
 	printf("\t-n <nick>\tIRC nick (optional, %s by default)\n",PACKAGE_NAME);
-	#ifndef UNIX_SOCKET
 	printf("\t-p <port>\tListening port (optional, 8675 by default)\n");
-	#endif
 	printf("\t-s <address>[:port]\tIRC server, default port is 6667\n");
 	printf("\t-v\t\tIncrease logging verbosity, may be given more than once\n");
 	printf("\t-V\t\tPrint the version\n");

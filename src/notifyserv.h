@@ -17,9 +17,8 @@ struct preferences {
 	int irc_chanc;
 	char *irc_nick;
 	char *bind_address;
-#ifndef UNIX_SOCKET
 	int bind_port;
-#endif
+	char *sock_path;
 	unsigned int verbosity;
 } prefs;
 
@@ -28,10 +27,6 @@ struct notify_info {
 	int listen_sockfd;
 	FILE *log_fp;
 } notify_info;
-
-#ifdef UNIX_SOCKET
-#define SOCK_PATH "/tmp/notifyserv"
-#endif
 
 /* clean up sockets */
 void cleanup();

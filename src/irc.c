@@ -151,9 +151,7 @@ void irc_parse(char *string)
 			notify_log(INFO,"Rebooting as requested by %s on IRC.",strtok(&line[1]," "));
 			close(notify_info.irc_sockfd);
 			close(notify_info.listen_sockfd);
-			#ifdef UNIX_SOCKET
-			unlink(SOCK_PATH);
-			#endif
+			unlink(prefs.sock_path);
 			//execv(argv[0],argv);
 		}
 	} while((line = strtok_r(string,"\n",&saveptr)) != NULL);
