@@ -6,11 +6,14 @@
  */
 
 
+#include <errno.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <netinet/in.h>
+#include <sys/un.h>
 
 #include "notifyserv.h"
 
@@ -21,9 +24,13 @@ static int daemonise(void);
 
 int main(int argc, char *argv[])
 {
-	int c, chanc = 0;
+	int c, chanc = 0, client, sr;
+	socklen_t len;
 	fd_set read_flags;
 	struct sigaction sa;
+	struct sockaddr_in in_cli_addr;
+	struct sockaddr_un un_cli_addr;
+	char buf[256];
 
 	/* Set defaults */
 	prefs.bind_address = strdup("localhost");
@@ -43,7 +50,7 @@ int main(int argc, char *argv[])
 	sigaction(SIGTERM,&sa,NULL);
 	sigaction(SIGQUIT,&sa,NULL);
 
-	while((c = getopt(argc,argv,"c:dfhl:n:p:s:vV")) != -1)
+	while((c = getopt(argc,argv,"c:dfhl:n:p:s:uvV")) != -1)
 		switch(c)
 		{
 			case 'c':
@@ -60,13 +67,15 @@ int main(int argc, char *argv[])
 				print_usage(argv[0],EXIT_SUCCESS);
 				break;
 			case 'l':
-				prefs.bind_address = optarg;
+				free(prefs.bind_address);
+				prefs.bind_address = strdup(optarg);
 				break;
 			case 'p':
 				prefs.bind_port = atoi(optarg);
 				break;
 			case 'n':
-				prefs.irc_nick = optarg;
+				free(prefs.irc_nick);
+				prefs.irc_nick = strdup(optarg);
 				break;
 			case 's':
 				if(strstr(optarg,":")) {
@@ -75,6 +84,9 @@ int main(int argc, char *argv[])
 				} else {
 					prefs.irc_server = strdup(optarg);
 				}
+				break;
+			case 'u':
+				prefs.sock_path = strdup(optarg);
 				break;
 			case 'v':
 				prefs.verbosity++;
@@ -119,18 +131,42 @@ int main(int argc, char *argv[])
 			continue;
 
 		if(FD_ISSET(notify_info.irc_sockfd,&read_flags)) {
-			notify_log(DEBUG,"Data on IRC socket");
+			FD_CLR(notify_info.irc_sockfd,&read_flags);
+			sr = read(notify_info.irc_sockfd,buf,sizeof(buf));
+			buf[sr] = '\0';
+			if(sr > 0)
+				irc_parse(buf);
+			else
+				notify_log(ERROR,"Read failed: %s",strerror(errno));
 		}
 
 		if(notify_info.listen_unix_sockfd > 0) {
 			if(FD_ISSET(notify_info.listen_unix_sockfd,&read_flags)) {
+				FD_CLR(notify_info.listen_unix_sockfd,&read_flags);
 				notify_log(DEBUG,"Data on Unix domain socket");
+				len = sizeof(un_cli_addr);
+				client = accept(notify_info.listen_unix_sockfd,(struct sockaddr *)&un_cli_addr,&len);
+				sr = read(notify_info.listen_unix_sockfd,buf,sizeof(buf));
+				buf[sr] = '\0';
+				if(sr > 0)
+					printf("UNIX: %s",buf);
+				else
+					notify_log(ERROR,"Read failed: %s",strerror(errno));
 			}
 		}
 
 		if(notify_info.listen_tcp_sockfd > 0) {
 			if(FD_ISSET(notify_info.listen_tcp_sockfd,&read_flags)) {
+				FD_CLR(notify_info.listen_tcp_sockfd,&read_flags);
 				notify_log(DEBUG,"Data on TCP socket");
+				len = sizeof(in_cli_addr);
+				client = accept(notify_info.listen_tcp_sockfd,(struct sockaddr *)&in_cli_addr,&len);
+				sr = read(client,buf,sizeof(buf));
+				buf[sr] = '\0';
+				if(sr > 0)
+					printf("TCP: %s",buf);
+				else
+					notify_log(ERROR,"Read failed: %s",strerror(errno));
 			}
 		}
 	}
@@ -151,16 +187,15 @@ static int daemonise(void)
 
 void cleanup(void)
 {
-	free(prefs.bind_address);
 	if(notify_info.irc_sockfd > 0) close(notify_info.irc_sockfd);
 	if(notify_info.listen_tcp_sockfd > 0)
 		close(notify_info.listen_tcp_sockfd);
 	if(notify_info.listen_unix_sockfd > 0)
 		close(notify_info.listen_unix_sockfd);
 	free(prefs.irc_nick);
-	free(prefs.sock_path);
 	fclose(notify_info.log_fp);
-	unlink(prefs.sock_path);
+	if(prefs.sock_path != NULL) unlink(prefs.sock_path);
+	free(prefs.sock_path);
 }
 
 static void print_usage(const char *exec, int retval)
@@ -176,6 +211,7 @@ static void print_usage(const char *exec, int retval)
 	printf("\t-n <nick>\tIRC nick (optional, %s by default)\n",PACKAGE_NAME);
 	printf("\t-p <port>\tListening port (optional, 8675 by default)\n");
 	printf("\t-s <address>[:port]\tIRC server, default port is 6667\n");
+	printf("\t-u <path>\tPath to UNIX domain socket\n");
 	printf("\t-v\t\tIncrease logging verbosity, may be given more than once\n");
 	printf("\t-V\t\tPrint the version\n");
 	exit(retval);
