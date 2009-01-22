@@ -3,7 +3,9 @@
 - Multi-channel support
 - Unix socket support
 - New option: -l <address> to change the listen address (TCP sockets)
-- Support address:port for -s
+- New option: -d - disable the tcp listener
+- New option: -f - run in foreground and log to stdout
+- Support address:port format for -s
 - Fix: Exit when nickname is in use
 
 == 1.1 (2008-11-20) ==
