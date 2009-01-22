@@ -35,7 +35,10 @@ int server_connect(const char *host, int port)
         if(fcntl(sockfd,F_SETFL,fcntl(sockfd,F_GETFL,0) | O_NONBLOCK) < 0)
                 return -1;
 
-        he = gethostbyname(host);
+	if((he = gethostbyname(host)) == NULL) {
+		errno = h_errno;
+		return -1;
+	}
         addr.sin_family = AF_INET;
         addr.sin_port = htons(port);
         memcpy((char *)&addr.sin_addr.s_addr,(char *)he->h_addr,he->h_length);
