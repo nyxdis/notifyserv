@@ -75,19 +75,23 @@ void notify_log(enum loglevel level, const char *format, ...)
 	char *ts;
 	time_t t;
 	va_list ap;
+	FILE *fp;
 
 	if(level > prefs.verbosity) return;
+
+	if(prefs.fork == false) fp = stdout;
+	else fp = notify_info.log_fp;
 
 	t = time(NULL);
 	ts = malloc(22);
 	strftime(ts,22,"%F %T  ",localtime(&t));
-	fputs(ts,notify_info.log_fp);
+	fputs(ts,fp);
 	free(ts);
 
 	va_start(ap,format);
-	vfprintf(notify_info.log_fp,format,ap);
+	vfprintf(fp,format,ap);
 	va_end(ap);
 
-	fputs("\n",notify_info.log_fp);
-	fflush(notify_info.log_fp);
+	fputs("\n",fp);
+	fflush(fp);
 }
