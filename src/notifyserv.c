@@ -96,10 +96,12 @@ int main(int argc, char *argv[])
 				break;
 		}
 
-	if((notify_info.log_fp = fopen("notifyserv.log","a")) == NULL)
-	{
-		perror("Unable to open notifyserv.log for logging");
-		exit(EXIT_FAILURE);
+	if(prefs.fork == true) {
+		if((notify_info.log_fp = fopen("notifyserv.log","a")) == NULL)
+		{
+			perror("Unable to open notifyserv.log for logging");
+			exit(EXIT_FAILURE);
+		}
 	}
 
 	if(chanc == 0 || prefs.irc_server == NULL) print_usage(argv[0],EXIT_FAILURE);
