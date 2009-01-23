@@ -87,7 +87,8 @@ void notify_log(enum loglevel level, const char *format, ...)
 
 	t = time(NULL);
 	ts = malloc(22);
-	strftime(ts,22,"%F %T  ",localtime(&t));
+	/* strftime(ts,22,"%F %T  ",localtime(&t)); */
+	strftime(ts,22,"%Y-%m-%d %H:%M:%S  ",localtime(&t));
 	fputs(ts,fp);
 	free(ts);
 
