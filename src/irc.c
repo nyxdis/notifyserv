@@ -52,7 +52,7 @@ int irc_connect(void)
 
 void irc_parse(char *string)
 {
-	char *channel = NULL, *line, *saveptr, *tmp;
+	char *channel, *line, *saveptr, *tmp;
 	int i;
 
 	line = strtok_r(string,"\n",&saveptr);
@@ -72,17 +72,9 @@ void irc_parse(char *string)
 		}
 		free(tmp);
 
-		if(strstr(line,"#")) {
-			channel = strdup(line);
-			strtok(channel,"#");
-			tmp = strtok(NULL," ");
-			free(channel);
-			asprintf(&channel,"#%s",tmp);
-		}
-
 		if(strncmp(line,"PING :",6) == 0)
 		{
-			notify_log(DEBUG,"[IRC] Sending PONG :%s.",&line[6]);
+			notify_log(DEBUG,"[IRC] Sending PONG :%s",&line[6]);
 			asprintf(&tmp,"PONG :%s",&line[6]);
 			irc_write(tmp);
 			free(tmp);
@@ -102,60 +94,64 @@ void irc_parse(char *string)
 		}
 		free(tmp);
 
-		asprintf(&tmp,"KICK %s %s :",channel,prefs.irc_nick);
-		if(strstr(line,tmp))
-		{
-			notify_log(INFO,"[IRC] Kicked from %s, rejoining.",channel);
-			free(tmp);
-			asprintf(&tmp,"JOIN %s",channel);
-			irc_write(tmp);
-		}
-		free(tmp);
+		if((tmp = strstr(line,"#")) != NULL) {
+			if((i = strcspn(tmp," ")) == 0)
+				continue; /* invalid string */
+			channel = malloc(i);
+			memcpy(channel,tmp,i);
 
-		asprintf(&tmp,"PRIVMSG %s :!ping\r",channel);
-		if(strstr(line,tmp))
-		{
-			notify_log(DEBUG,"[IRC] %s pinged me, sending pong.",strtok(&line[1]," "));
+			/* These rely on channel being initialized */
+			asprintf(&tmp,"KICK %s %s :",channel,prefs.irc_nick);
+			if(strstr(line,tmp))
+			{
+				notify_log(INFO,"[IRC] Kicked from %s, rejoining.",channel);
+				free(tmp);
+				asprintf(&tmp,"JOIN %s",channel);
+				irc_write(tmp);
+			}
 			free(tmp);
-			asprintf(&tmp,"%s: pong",strtok(&line[1],"!"));
-			irc_say(channel,tmp);
-		}
-		free(tmp);
 
-		asprintf(&tmp,"PRIVMSG %s :!version\r",channel);
-		if(strstr(line,tmp))
-		{
-			notify_log(DEBUG,"[IRC] %s asked for my version.",strtok(&line[1]," "));
+			asprintf(&tmp,"PRIVMSG %s :!ping\r",channel);
+			if(strstr(line,tmp))
+			{
+				notify_log(DEBUG,"[IRC] %s pinged me, sending pong.",strtok(&line[1]," "));
+				free(tmp);
+				asprintf(&tmp,"%s: pong",strtok(&line[1],"!"));
+				irc_say(channel,tmp);
+			}
 			free(tmp);
-			asprintf(&tmp,"This is %s",PACKAGE_STRING);
-			irc_say(channel,tmp);
-		}
-		free(tmp);
 
-		asprintf(&tmp,"PRIVMSG %s :!die\r",channel);
-		if(strstr(line,tmp))
-		{
-			notify_log(INFO,"Dying as requested by %s on IRC.",strtok(&line[1]," "));
-			irc_write("QUIT :Dying");
+			asprintf(&tmp,"PRIVMSG %s :!version\r",channel);
+			if(strstr(line,tmp))
+			{
+				notify_log(DEBUG,"[IRC] %s asked for my version.",strtok(&line[1]," "));
+				free(tmp);
+				asprintf(&tmp,"This is %s",PACKAGE_STRING);
+				irc_say(channel,tmp);
+			}
+			free(tmp);
+
+			asprintf(&tmp,"PRIVMSG %s :!die\r",channel);
+			if(strstr(line,tmp))
+			{
+				notify_log(INFO,"Dying as requested by %s on IRC.",strtok(&line[1]," "));
+				irc_write("QUIT :Dying");
+				free(tmp);
+				cleanup();
+				exit(EXIT_SUCCESS);
+			}
+			free(tmp);
+
+			asprintf(&tmp,"PRIVMSG %s :!reboot\r",channel);
+			if(strstr(line,tmp))
+			{
+				free(tmp);
+				notify_log(INFO,"Rebooting as requested by %s on IRC.",strtok(&line[1]," "));
+				cleanup();
+				//execv(argv[0],argv);
+			}
 			free(tmp);
 			free(channel);
-			cleanup();
-			exit(EXIT_SUCCESS);
 		}
-		free(tmp);
-
-		asprintf(&tmp,"PRIVMSG %s :!reboot\r",channel);
-		if(strstr(line,tmp))
-		{
-			free(tmp);
-			free(channel);
-			notify_log(INFO,"Rebooting as requested by %s on IRC.",strtok(&line[1]," "));
-			cleanup();
-			//execv(argv[0],argv);
-		}
-		free(tmp);
-
-		if(channel != NULL)
-			free(channel);
 	} while((line = strtok_r(NULL,"\n",&saveptr)) != NULL);
 }
