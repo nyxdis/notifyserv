@@ -41,7 +41,7 @@ int irc_connect(void)
 		cleanup();
 		return -1;
 	}
-	notify_log(INFO,"Connected to IRC");
+	notify_log(INFO,"Connected to IRC server");
 
 	asprintf(&tmp,"USER %s ns ns :%s",IDENT,PACKAGE_STRING);
 	irc_write(tmp);
@@ -94,7 +94,7 @@ void irc_parse(char *string)
 		asprintf(&tmp,"001 %s :Welcome to the",prefs.irc_nick);
 		if(strstr(line,tmp))
 		{
-			notify_log(INFO,"[IRC] Connected.");
+			notify_log(INFO,"[IRC] Connection complete.");
 			for(i=0;prefs.irc_chans[i] != NULL;i++)
 			{
 				free(tmp);
