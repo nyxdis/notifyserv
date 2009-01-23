@@ -32,6 +32,8 @@ int main(int argc, char *argv[])
 	struct sockaddr_un un_cli_addr;
 	char buf[512];
 
+	notify_info.argv = argv;
+
 	/* Set defaults */
 	prefs.bind_address = strdup("localhost");
 	prefs.bind_port = 8675;

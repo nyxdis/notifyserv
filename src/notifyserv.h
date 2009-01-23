@@ -31,6 +31,7 @@ struct notify_info {
 	int listen_unix_sockfd;
 	int listen_tcp_sockfd;
 	FILE *log_fp;
+	char **argv;
 } notify_info;
 
 /* clean up sockets */
