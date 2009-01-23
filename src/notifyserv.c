@@ -154,7 +154,8 @@ int main(int argc, char *argv[])
 				sr = read(client,buf,sizeof(buf));
 				buf[sr-1] = '\0';
 				if(sr > 0) {
-					irc_say(prefs.irc_chans[0],buf);
+					for(c=0;prefs.irc_chans[c] != NULL;c++)
+						irc_say(prefs.irc_chans[c],buf);
 					notify_log(INFO,"Forwareded data from Unix domain socket to IRC: %s",buf);
 				} else
 					notify_log(ERROR,"Read failed: %s",strerror(errno));
@@ -169,7 +170,8 @@ int main(int argc, char *argv[])
 				sr = read(client,buf,sizeof(buf));
 				buf[sr-1] = '\0';
 				if(sr > 0) {
-					irc_say(prefs.irc_chans[0],buf);
+					for(c=0;prefs.irc_chans[c] != NULL;c++)
+						irc_say(prefs.irc_chans[c],buf);
 					notify_log(INFO,"Forwareded data from TCP socket to IRC: %s",buf);
 				} else
 					notify_log(ERROR,"Read failed: %s",strerror(errno));
