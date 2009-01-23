@@ -114,17 +114,17 @@ int main(int argc, char *argv[])
 
 	if(start_listener() < 0) {
 		notify_log(ERROR,"Failed to start listener: %s",strerror(errno));
+		free(prefs.irc_server);
+		free(prefs.bind_address);
+		cleanup();
 		exit(EXIT_FAILURE);
 	}
 	if(irc_connect() < 0) {
-		notify_log(ERROR,"Failed to start listener: %s",strerror(errno));
+		notify_log(ERROR,"Failed to connect to IRC server: %s",strerror(errno));
+		free(prefs.bind_address);
+		cleanup();
 		exit(EXIT_FAILURE);
 	}
-
-	if(notify_info.irc_sockfd > notify_info.listen_tcp_sockfd)
-		c = notify_info.irc_sockfd;
-	if(notify_info.listen_unix_sockfd > c)
-		c = notify_info.listen_unix_sockfd;
 
 	while(1)
 	{
@@ -132,6 +132,11 @@ int main(int argc, char *argv[])
 		FD_SET(notify_info.irc_sockfd,&read_flags);
 		if(notify_info.listen_tcp_sockfd > 0) FD_SET(notify_info.listen_tcp_sockfd,&read_flags);
 		if(notify_info.listen_unix_sockfd > 0) FD_SET(notify_info.listen_unix_sockfd,&read_flags);
+
+		if(notify_info.irc_sockfd > notify_info.listen_tcp_sockfd)
+			c = notify_info.irc_sockfd;
+		if(notify_info.listen_unix_sockfd > c)
+			c = notify_info.listen_unix_sockfd;
 
 		if(select(c+1,&read_flags,NULL,NULL,NULL) < 0)
 			continue;
@@ -159,6 +164,7 @@ int main(int argc, char *argv[])
 					notify_log(INFO,"Forwareded data from Unix domain socket to IRC: %s",buf);
 				} else
 					notify_log(ERROR,"Read failed: %s",strerror(errno));
+				close(client);
 			}
 		}
 
@@ -175,6 +181,7 @@ int main(int argc, char *argv[])
 					notify_log(INFO,"Forwareded data from TCP socket to IRC: %s",buf);
 				} else
 					notify_log(ERROR,"Read failed: %s",strerror(errno));
+				close(client);
 			}
 		}
 	}
