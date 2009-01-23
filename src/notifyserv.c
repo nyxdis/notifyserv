@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 	struct sigaction sa;
 	struct sockaddr_in in_cli_addr;
 	struct sockaddr_un un_cli_addr;
-	char buf[256];
+	char buf[512];
 
 	/* Set defaults */
 	prefs.bind_address = strdup("localhost");
