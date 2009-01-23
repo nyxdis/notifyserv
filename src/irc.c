@@ -36,11 +36,8 @@ int irc_connect(void)
 
 	notify_info.irc_sockfd = server_connect(prefs.irc_server,prefs.irc_port);
 	free(prefs.irc_server);
-	if(notify_info.irc_sockfd < 0) {
-		notify_log(ERROR,"[IRC] Failed to connect: %s",strerror(errno));
-		cleanup();
+	if(notify_info.irc_sockfd < 0)
 		return -1;
-	}
 	notify_log(INFO,"Connected to IRC server");
 
 	asprintf(&tmp,"USER %s ns ns :%s",IDENT,PACKAGE_STRING);
