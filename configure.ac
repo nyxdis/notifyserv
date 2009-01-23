@@ -1,8 +1,5 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-m4_define([notifyserv_version], [1.9])
-m4_define([notifyserv_rev], [rfcb14ca])
-
 AC_PREREQ([2.59])
 AC_INIT([NotifyServ], [notifyserv_version-notifyserv_rev], [angelos@unkreativ.org], [notifyserv])
 AC_CONFIG_SRCDIR([config.h.in])
