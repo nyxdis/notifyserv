@@ -12,14 +12,16 @@ AC_PROG_CC
 # Checks for libraries.
 
 # Checks for header files.
-AC_CHECK_HEADERS([fcntl.h netdb.h stdlib.h string.h unistd.h])
+AC_CHECK_HEADERS([fcntl.h netdb.h netinet/in.h stdlib.h string.h sys/socket.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
+AC_HEADER_STDBOOL
+AC_TYPE_PID_T
 
 # Checks for library functions.
 AC_FUNC_FORK
 AC_FUNC_MALLOC
-AC_CHECK_FUNCS([gethostbyname select socket strdup strstr])
+AC_CHECK_FUNCS([gethostbyname select socket strcspn strdup strerror strstr])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
