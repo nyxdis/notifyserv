@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 	struct sigaction sa;
 	struct sockaddr_in in_cli_addr;
 	struct sockaddr_un un_cli_addr;
-	char buf[512];
+	char buf[512], *line, *saveptr;
 
 	notify_info.argv = argv;
 
@@ -157,17 +157,21 @@ int main(int argc, char *argv[])
 				notify_log(ERROR,"Read failed: %s",strerror(errno));
 		}
 
+		/* TODO: Move forwarding functions to listen.c */
 		if(notify_info.listen_unix_sockfd > 0) {
 			if(FD_ISSET(notify_info.listen_unix_sockfd,&read_flags)) {
 				FD_CLR(notify_info.listen_unix_sockfd,&read_flags);
 				len = sizeof(un_cli_addr);
 				client = accept(notify_info.listen_unix_sockfd,(struct sockaddr *)&un_cli_addr,&len);
 				sr = read(client,buf,sizeof(buf));
-				buf[sr-1] = '\0';
+				buf[sr] = '\0';
 				if(sr > 0) {
-					for(c=0;prefs.irc_chans[c] != NULL;c++)
-						irc_say(prefs.irc_chans[c],buf);
-					notify_log(INFO,"Forwareded data from Unix domain socket to IRC: %s",buf);
+					line = strtok_r(buf,"\n",&saveptr);
+					do {
+						for(c=0;prefs.irc_chans[c] != NULL;c++)
+							irc_say(prefs.irc_chans[c],line);
+						notify_log(INFO,"Forwareded data from Unix domain socket to IRC: %s",line);
+					} while((line = strtok_r(NULL,"\n",&saveptr)) != NULL);
 				} else
 					notify_log(ERROR,"Read failed: %s",strerror(errno));
 				close(client);
@@ -180,11 +184,14 @@ int main(int argc, char *argv[])
 				len = sizeof(in_cli_addr);
 				client = accept(notify_info.listen_tcp_sockfd,(struct sockaddr *)&in_cli_addr,&len);
 				sr = read(client,buf,sizeof(buf));
-				buf[sr-1] = '\0';
+				buf[sr] = '\0';
 				if(sr > 0) {
-					for(c=0;prefs.irc_chans[c] != NULL;c++)
-						irc_say(prefs.irc_chans[c],buf);
-					notify_log(INFO,"Forwareded data from TCP socket to IRC: %s",buf);
+					line = strtok_r(buf,"\n",&saveptr);
+					do {
+						for(c=0;prefs.irc_chans[c] != NULL;c++)
+							irc_say(prefs.irc_chans[c],line);
+						notify_log(INFO,"Forwareded data from TCP socket to IRC: %s",line);
+					} while((line = strtok_r(NULL,"\n",&saveptr)) != NULL);
 				} else
 					notify_log(ERROR,"Read failed: %s",strerror(errno));
 				close(client);
