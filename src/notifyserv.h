@@ -13,6 +13,7 @@
 #include "irc.h"
 #include "listen.h"
 
+/* User-defined options */
 struct preferences {
 	bool fork;
 	char *bind_address;
@@ -27,6 +28,7 @@ struct preferences {
 	unsigned short verbosity;
 } prefs;
 
+/* Internal data */
 struct notify_info {
 	int irc_sockfd;
 	int listen_unix_sockfd;

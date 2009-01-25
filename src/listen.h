@@ -6,4 +6,5 @@
  */
 
 
+/* Initialize listeners, TCP and Unix domain sockets */
 int start_listener(void);

@@ -6,7 +6,11 @@
  */
 
 
-/* connect to irc */
+/* Connect to IRC */
 int irc_connect(void);
+
+/* Parse input read on the IRC sockfd */
 void irc_parse(char *string);
+
+/* Send text to an IRC channel */
 void irc_say(const char *channel, const char *string);
