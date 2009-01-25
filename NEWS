@@ -2,6 +2,7 @@
 - Major rewrite
 - Multi-channel support
 - Unix socket support
+- Forward text after a linebreak
 - New option: -d - disable the tcp listener
 - New option: -i - change the IRC ident
 - New option: -f - run in foreground and log to stdout
