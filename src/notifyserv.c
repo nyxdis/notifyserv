@@ -71,6 +71,7 @@ int main(int argc, char *argv[])
 				print_usage(argv[0],EXIT_SUCCESS);
 				break;
 			case 'i':
+				free(prefs.irc_ident);
 				prefs.irc_ident = strdup(optarg);
 				break;
 			case 'l':
@@ -211,7 +212,6 @@ void cleanup(void)
 	if(notify_info.listen_unix_sockfd > 0)
 		close(notify_info.listen_unix_sockfd);
 	free(prefs.irc_nick);
-	free(prefs.irc_ident);
 	if(prefs.fork == true) fclose(notify_info.log_fp);
 	if(prefs.sock_path != NULL) unlink(prefs.sock_path);
 	free(prefs.sock_path);

@@ -42,6 +42,7 @@ int irc_connect(void)
 
 	asprintf(&tmp,"USER %s ns ns :%s",prefs.irc_ident,PACKAGE_STRING);
 	irc_write(tmp);
+	free(prefs.irc_ident);
 	free(tmp);
 	asprintf(&tmp,"NICK %s",prefs.irc_nick);
 	irc_write(tmp);
