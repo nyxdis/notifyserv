@@ -95,10 +95,11 @@ void irc_parse(char *string)
 		free(tmp);
 
 		if((tmp = strstr(line,"#")) != NULL) {
-			if((i = strcspn(tmp," ")) == 0)
+			if((i = strcspn(tmp," ")) < 2)
 				continue; /* invalid string */
-			channel = malloc(i);
+			if((channel = malloc(i+1)) == NULL) return;
 			memcpy(channel,tmp,i);
+			channel[i] = '\0';
 
 			/* These rely on channel being initialized */
 			asprintf(&tmp,"KICK %s %s :",channel,prefs.irc_nick);
@@ -136,6 +137,7 @@ void irc_parse(char *string)
 			{
 				notify_log(INFO,"Dying as requested by %s on IRC.",strtok(&line[1]," "));
 				irc_write("QUIT :Dying");
+				free(channel);
 				free(tmp);
 				cleanup();
 				exit(EXIT_SUCCESS);
