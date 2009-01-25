@@ -10,4 +10,7 @@ notifyserv.1: src/notifyserv.c
 		$(MAKE) $(AM_MAKEFLAGS) notifyserv$(EXEEXT)
 		help2man --name="IRC notification system" --no-info --output=notifyserv.1 --version-option="-V" ./notifyserv$(EXEEXT)
 
+clean:	clean-am
+	rm -f notifyserv.1
+
 DEFS += -D_GNU_SOURCE
