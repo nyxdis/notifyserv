@@ -52,6 +52,7 @@ int main(int argc, char *argv[])
 	sigaction(SIGINT,&sa,NULL);
 	sigaction(SIGTERM,&sa,NULL);
 	sigaction(SIGQUIT,&sa,NULL);
+	sigaction(SIGHUP,&sa,NULL);
 
 	while((c = getopt(argc,argv,"c:dfhi:l:n:p:s:u:vV")) != -1)
 		switch(c)
@@ -246,6 +247,10 @@ static void print_version(void)
 
 static void sighandler(int sig)
 {
+	if(sig == SIGHUP) {
+		notify_log(INFO,"Received signal %d, ignored.");
+		return;
+	}
 	notify_log(INFO,"Received signal %d, exiting.",sig);
 	cleanup();
 	exit(EXIT_SUCCESS);
