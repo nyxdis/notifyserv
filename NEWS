@@ -2,9 +2,10 @@
 - Major rewrite
 - Multi-channel support
 - Unix socket support
-- New option: -l <address> to change the listen address (TCP sockets)
 - New option: -d - disable the tcp listener
+- New option: -i - change the IRC ident
 - New option: -f - run in foreground and log to stdout
+- New option: -l <address> to change the listen address (TCP sockets)
 - Support address:port format for -s
 - Fix: Exit when nickname is in use
 - Fix: fixed several leaks

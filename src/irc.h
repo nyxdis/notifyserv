@@ -6,8 +6,6 @@
  */
 
 
-#define IDENT "notify"
-
 /* connect to irc */
 int irc_connect(void);
 void irc_parse(char *string);

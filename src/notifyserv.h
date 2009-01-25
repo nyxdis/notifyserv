@@ -14,15 +14,16 @@
 #include "listen.h"
 
 struct preferences {
-	char *irc_server;
-	int irc_port;
-	char *irc_chans[20];
-	int irc_chanc;
-	char *irc_nick;
-	char *bind_address;
-	int bind_port;
-	char *sock_path;
 	bool fork;
+	char *bind_address;
+	char *irc_chans[20];
+	char *irc_ident;
+	char *irc_nick;
+	char *irc_server;
+	char *sock_path;
+	int bind_port;
+	int irc_chanc;
+	int irc_port;
 	unsigned short verbosity;
 } prefs;
 

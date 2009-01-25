@@ -40,7 +40,7 @@ int irc_connect(void)
 		return -1;
 	notify_log(INFO,"Connected to IRC server");
 
-	asprintf(&tmp,"USER %s ns ns :%s",IDENT,PACKAGE_STRING);
+	asprintf(&tmp,"USER %s ns ns :%s",prefs.irc_ident,PACKAGE_STRING);
 	irc_write(tmp);
 	free(tmp);
 	asprintf(&tmp,"NICK %s",prefs.irc_nick);

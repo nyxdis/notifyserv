@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
 	prefs.bind_address = strdup("localhost");
 	prefs.bind_port = 8675;
 	prefs.fork = true;
+	prefs.irc_ident = strdup(PACKAGE);
 	prefs.irc_nick = strdup(PACKAGE_NAME);
 	prefs.irc_port = 6667;
 	prefs.sock_path = NULL;
@@ -52,7 +53,7 @@ int main(int argc, char *argv[])
 	sigaction(SIGTERM,&sa,NULL);
 	sigaction(SIGQUIT,&sa,NULL);
 
-	while((c = getopt(argc,argv,"c:dfhl:n:p:s:u:vV")) != -1)
+	while((c = getopt(argc,argv,"c:dfhi:l:n:p:s:u:vV")) != -1)
 		switch(c)
 		{
 			case 'c':
@@ -67,6 +68,9 @@ int main(int argc, char *argv[])
 				break;
 			case 'h':
 				print_usage(argv[0],EXIT_SUCCESS);
+				break;
+			case 'i':
+				prefs.irc_ident = strdup(optarg);
 				break;
 			case 'l':
 				free(prefs.bind_address);
@@ -128,7 +132,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	while(1)
+	for(;;)
 	{
 		FD_ZERO(&read_flags);
 		FD_SET(notify_info.irc_sockfd,&read_flags);
@@ -210,6 +214,7 @@ void cleanup(void)
 	if(notify_info.listen_unix_sockfd > 0)
 		close(notify_info.listen_unix_sockfd);
 	free(prefs.irc_nick);
+	free(prefs.irc_ident);
 	if(prefs.fork == true) fclose(notify_info.log_fp);
 	if(prefs.sock_path != NULL) unlink(prefs.sock_path);
 	free(prefs.sock_path);
@@ -224,6 +229,7 @@ static void print_usage(const char *exec, int retval)
 	printf("\t-d\t\tDisable TCP listener\n");
 	printf("\t-f\t\tRun in foreground\n");
 	printf("\t-h\t\tThis help\n");
+	printf("\t-i <ident>\tIRC ident (optional, %s by default)\n",PACKAGE);
 	printf("\t-l <address>\tListen on the specified address (optional, localhost by default)\n");
 	printf("\t-n <nick>\tIRC nick (optional, %s by default)\n",PACKAGE_NAME);
 	printf("\t-p <port>\tListening port (optional, 8675 by default)\n");
