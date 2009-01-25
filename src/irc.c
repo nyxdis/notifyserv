@@ -149,6 +149,7 @@ void irc_parse(char *string)
 			if(strstr(line,tmp))
 			{
 				free(tmp);
+				free(channel);
 				notify_log(INFO,"Rebooting as requested by %s on IRC.",strtok(&line[1]," "));
 				cleanup();
 				execv(notify_info.argv[0],notify_info.argv);
