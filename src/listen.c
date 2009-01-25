@@ -91,3 +91,20 @@ int start_listener(void)
 	}
 	return 0;
 }
+
+void listen_forward(int orig, char *input)
+{
+	char *line, *saveptr, *origin;
+	int i;
+
+	if(orig == 1) origin = strdup("TCP");
+	else origin = strdup("Unix domain");
+
+	line = strtok_r(input,"\n",&saveptr);
+	do {
+		for(i=0;prefs.irc_chans[i] != NULL;i++)
+			irc_say(prefs.irc_chans[i],line);
+		notify_log(INFO,"Forwareded data from %s socket to IRC: %s",
+			origin,line);
+	} while((line = strtok_r(NULL,"\n",&saveptr)) != NULL);
+}
