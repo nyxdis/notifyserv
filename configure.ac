@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.59])
-AC_INIT([NotifyServ], [2.0], [angelos@unkreativ.org], [notifyserv])
+AC_INIT([NotifyServ], [2.1], [angelos@unkreativ.org], [notifyserv])
 AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([dist-bzip2 foreign])
