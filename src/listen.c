@@ -107,4 +107,5 @@ void listen_forward(int orig, char *input)
 		notify_log(INFO,"Forwareded data from %s socket to IRC: %s",
 			origin,line);
 	} while((line = strtok_r(NULL,"\n",&saveptr)) != NULL);
+	free(origin);
 }
