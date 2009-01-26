@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
 		if(FD_ISSET(notify_info.irc_sockfd,&read_flags)) {
 			FD_CLR(notify_info.irc_sockfd,&read_flags);
 			memset(buf,0,sizeof(buf));
-			if(read(notify_info.irc_sockfd,buf,sizeof(buf)) > 0)
+			if(read(notify_info.irc_sockfd,buf,sizeof(buf)-1) > 0)
 				irc_parse(buf);
 			else {
 				notify_log(INFO,"Lost IRC connection, reconnecting.");
@@ -173,7 +173,7 @@ int main(int argc, char *argv[])
 				len = sizeof(un_cli_addr);
 				client = accept(notify_info.listen_unix_sockfd,(struct sockaddr *)&un_cli_addr,&len);
 				memset(buf,0,sizeof(buf));
-				if(read(client,buf,sizeof(buf)) > 0)
+				if(read(client,buf,sizeof(buf)-1) > 0)
 					listen_forward(0,buf);
 				else
 					notify_log(ERROR,"Read failed: %s",strerror(errno));
@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
 				len = sizeof(in_cli_addr);
 				client = accept(notify_info.listen_tcp_sockfd,(struct sockaddr *)&in_cli_addr,&len);
 				memset(buf,0,sizeof(buf));
-				if(read(client,buf,sizeof(buf)) > 0)
+				if(read(client,buf,sizeof(buf)-1) > 0)
 					listen_forward(1,buf);
 				else
 					notify_log(ERROR,"Read failed: %s",strerror(errno));
