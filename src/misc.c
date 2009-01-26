@@ -37,6 +37,7 @@ int server_connect(const char *host, int port)
 
 	if((ret = getaddrinfo(host,service,&hints,&result)) != 0) {
 		notify_log(ERROR,"[IRC] Failed to get address information: %s",gai_strerror(ret));
+		freeaddrinfo(result);
 		return -1;
 	}
 
@@ -46,8 +47,10 @@ int server_connect(const char *host, int port)
 		close(sockfd);
 	}
 
-	if(fcntl(sockfd,F_SETFL,fcntl(sockfd,F_GETFL,0) | O_NONBLOCK) < 0)
+	if(fcntl(sockfd,F_SETFL,fcntl(sockfd,F_GETFL,0) | O_NONBLOCK) < 0) {
+		freeaddrinfo(result);
 		return -1;
+	}
 
 	if(connect(sockfd,rp->ai_addr,rp->ai_addrlen) < 0) {
 		if(errno == EINPROGRESS) {
@@ -62,19 +65,24 @@ int server_connect(const char *host, int port)
 					(void*)(&valopt),&lon);
 				if(valopt) {
 					errno = valopt;
+					freeaddrinfo(result);
 					return -1;
 				}
 			}
 			else {
 				errno = ETIMEDOUT;
+				freeaddrinfo(result);
 				return -1;
 			}
 		}
-		else
+		else {
+			freeaddrinfo(result);
 			return -1;
+		}
 	}
 
 	errno = 0;
+	freeaddrinfo(result);
 	return sockfd;
 }
 
