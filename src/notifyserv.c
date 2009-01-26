@@ -156,8 +156,15 @@ int main(int argc, char *argv[])
 			memset(buf,0,sizeof(buf));
 			if(read(notify_info.irc_sockfd,buf,sizeof(buf)) > 0)
 				irc_parse(buf);
-			else
-				notify_log(ERROR,"Read failed: %s",strerror(errno));
+			else {
+				notify_log(INFO,"Lost IRC connection, reconnecting.");
+				if(irc_connect() < 0) {
+					if(errno > 0)
+						notify_log(ERROR,"Failed to connect to IRC server: %s",strerror(errno));
+					cleanup();
+					exit(EXIT_FAILURE);
+				}
+			}
 		}
 
 		if(notify_info.listen_unix_sockfd > 0) {
@@ -210,7 +217,9 @@ void cleanup(void)
 		close(notify_info.listen_tcp_sockfd);
 	if(notify_info.listen_unix_sockfd > 0)
 		close(notify_info.listen_unix_sockfd);
+	free(prefs.irc_ident);
 	free(prefs.irc_nick);
+	free(prefs.irc_server);
 	if(prefs.fork == true) fclose(notify_info.log_fp);
 	if(prefs.sock_path != NULL) unlink(prefs.sock_path);
 	free(prefs.sock_path);

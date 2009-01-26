@@ -35,14 +35,12 @@ int irc_connect(void)
 	char *tmp;
 
 	notify_info.irc_sockfd = server_connect(prefs.irc_server,prefs.irc_port);
-	free(prefs.irc_server);
 	if(notify_info.irc_sockfd < 0)
 		return -1;
 	notify_log(INFO,"Connected to IRC server");
 
 	asprintf(&tmp,"USER %s ns ns :%s",prefs.irc_ident,PACKAGE_STRING);
 	irc_write(tmp);
-	free(prefs.irc_ident);
 	free(tmp);
 	asprintf(&tmp,"NICK %s",prefs.irc_nick);
 	irc_write(tmp);
