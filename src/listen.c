@@ -46,26 +46,35 @@ static int listen_unix(void)
 
 static int listen_tcp(void)
 {
-	int sockfd;
-	struct sockaddr_in addr;
-	struct hostent *he;
+	int sockfd, ret;
+	char service[5];
+	struct addrinfo hints, *result, *rp;
 
-	if((sockfd = socket(AF_INET,SOCK_STREAM,0)) < 0)
-		return -1;
-	if((he = gethostbyname(prefs.bind_address)) == NULL) {
-		errno = h_errno;
+	memset(&hints,0,sizeof(hints));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	sprintf(service,"%d",prefs.bind_port);
+
+	if((ret = getaddrinfo(prefs.bind_address,service,&hints,
+		&result)) != 0) {
+		errno = ret;
 		return -1;
 	}
 
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons(prefs.bind_port);
-	memcpy((char *)&addr.sin_addr.s_addr,(char *)he->h_addr,he->h_length);
+	for(rp = result;rp != NULL;rp = rp->ai_next) {
+		if((sockfd = socket(rp->ai_family,rp->ai_socktype,
+			rp->ai_protocol)) < 0) continue;
+
+		if(bind(sockfd,rp->ai_addr,rp->ai_addrlen) == 0)
+			break;
+
+		close(sockfd);
+	}
+	freeaddrinfo(result);
 
 	if(fcntl(sockfd,F_SETFL,fcntl(sockfd,F_GETFL,0) | O_NONBLOCK) < 0)
 		return -1;
 
-	if(bind(sockfd,(struct sockaddr *)&addr,sizeof(addr)) < 0)
-		return -1;
 	if(listen(sockfd,5) < 0)
 		return -1;
 
