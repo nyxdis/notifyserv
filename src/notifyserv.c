@@ -121,14 +121,16 @@ int main(int argc, char *argv[])
 	notify_log(INFO,"%s started",PACKAGE_STRING);
 
 	if(start_listener() < 0) {
-		notify_log(ERROR,"Failed to start listener: %s",strerror(errno));
+		if(errno > 0)
+			notify_log(ERROR,"Failed to start listener: %s",strerror(errno));
 		free(prefs.irc_server);
 		free(prefs.bind_address);
 		cleanup();
 		exit(EXIT_FAILURE);
 	}
 	if(irc_connect() < 0) {
-		notify_log(ERROR,"Failed to connect to IRC server: %s",strerror(errno));
+		if(errno > 0)
+			notify_log(ERROR,"Failed to connect to IRC server: %s",strerror(errno));
 		free(prefs.bind_address);
 		cleanup();
 		exit(EXIT_FAILURE);

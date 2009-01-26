@@ -25,7 +25,7 @@ int server_connect(const char *host, int port)
 {
 	char service[5];
 	fd_set write_flags;
-	int sockfd = 0, valopt;
+	int sockfd = 0, valopt, ret;
 	socklen_t lon;
 	struct addrinfo hints, *result, *rp;
 	struct timeval timeout;
@@ -35,8 +35,10 @@ int server_connect(const char *host, int port)
 	hints.ai_socktype = SOCK_STREAM;
 	sprintf(service,"%d",port);
 
-	if((errno = getaddrinfo(host,service,&hints,&result)) != 0)
+	if((ret = getaddrinfo(host,service,&hints,&result)) != 0) {
+		notify_log(ERROR,"[IRC] Failed to get address information: %s",gai_strerror(ret));
 		return -1;
+	}
 
 	for(rp = result;rp != NULL;rp = rp->ai_next) {
 		if((sockfd = socket(rp->ai_family,rp->ai_socktype,rp->ai_protocol)) >= 0)

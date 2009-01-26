@@ -55,9 +55,8 @@ static int listen_tcp(void)
 	hints.ai_socktype = SOCK_STREAM;
 	sprintf(service,"%d",prefs.bind_port);
 
-	if((ret = getaddrinfo(prefs.bind_address,service,&hints,
-		&result)) != 0) {
-		errno = ret;
+	if((ret = getaddrinfo(prefs.bind_address,service,&hints,&result)) != 0) {
+		notify_log(ERROR,"[Listener] Failed to get address information: %s",gai_strerror(ret));
 		return -1;
 	}
 
