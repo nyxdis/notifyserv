@@ -24,7 +24,7 @@ static int daemonise(void);
 
 int main(int argc, char *argv[])
 {
-	int c, chanc = 0, client, sr;
+	int c, chanc = 0, client;
 	socklen_t len;
 	fd_set read_flags;
 	struct sigaction sa;
@@ -153,9 +153,8 @@ int main(int argc, char *argv[])
 
 		if(FD_ISSET(notify_info.irc_sockfd,&read_flags)) {
 			FD_CLR(notify_info.irc_sockfd,&read_flags);
-			sr = read(notify_info.irc_sockfd,buf,sizeof(buf));
-			buf[sr] = '\0';
-			if(sr > 0)
+			memset(buf,0,sizeof(buf));
+			if(read(notify_info.irc_sockfd,buf,sizeof(buf)) > 0)
 				irc_parse(buf);
 			else
 				notify_log(ERROR,"Read failed: %s",strerror(errno));
@@ -166,11 +165,10 @@ int main(int argc, char *argv[])
 				FD_CLR(notify_info.listen_unix_sockfd,&read_flags);
 				len = sizeof(un_cli_addr);
 				client = accept(notify_info.listen_unix_sockfd,(struct sockaddr *)&un_cli_addr,&len);
-				sr = read(client,buf,sizeof(buf));
-				buf[sr] = '\0';
-				if(sr > 0) {
+				memset(buf,0,sizeof(buf));
+				if(read(client,buf,sizeof(buf)) > 0)
 					listen_forward(0,buf);
-				} else
+				else
 					notify_log(ERROR,"Read failed: %s",strerror(errno));
 				close(client);
 			}
@@ -181,11 +179,10 @@ int main(int argc, char *argv[])
 				FD_CLR(notify_info.listen_tcp_sockfd,&read_flags);
 				len = sizeof(in_cli_addr);
 				client = accept(notify_info.listen_tcp_sockfd,(struct sockaddr *)&in_cli_addr,&len);
-				sr = read(client,buf,sizeof(buf));
-				buf[sr] = '\0';
-				if(sr > 0) {
+				memset(buf,0,sizeof(buf));
+				if(read(client,buf,sizeof(buf)) > 0)
 					listen_forward(1,buf);
-				} else
+				else
 					notify_log(ERROR,"Read failed: %s",strerror(errno));
 				close(client);
 			}
