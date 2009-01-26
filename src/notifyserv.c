@@ -198,7 +198,7 @@ static int daemonise(void)
 	pid_t pid;
 
 	if((pid = fork()) < 0) {
-		fprintf(stderr,"Could not fork process.\n");
+		fputs("Could not fork process.",stderr);
 		return -1;
 	} else if(pid) {
 		exit(EXIT_SUCCESS);
@@ -222,28 +222,28 @@ void cleanup(void)
 static void print_usage(const char *exec, int retval)
 {
 	printf("Usage: %s -c <channel> -s <address>[:port] [OPTIONS]\n",exec);
-	printf("Connect to IRC and relay every message received on the listener\n\n");
-	printf("Options:\n");
-	printf("\t-c <channel>\tOutput channel(s), may be given more than once\n");
-	printf("\t-d\t\tDisable TCP listener\n");
-	printf("\t-f\t\tRun in foreground\n");
-	printf("\t-h\t\tThis help\n");
+	puts("Connect to IRC and relay every message received on the listener\n");
+	puts("Options:");
+	puts("\t-c <channel>\tOutput channel(s), may be given more than once");
+	puts("\t-d\t\tDisable TCP listener");
+	puts("\t-f\t\tRun in foreground");
+	puts("\t-h\t\tThis help");
 	printf("\t-i <ident>\tIRC ident (optional, %s by default)\n",PACKAGE);
-	printf("\t-l <address>\tListen on the specified address (optional, localhost by default)\n");
+	puts("\t-l <address>\tListen on the specified address (optional, localhost by default)");
 	printf("\t-n <nick>\tIRC nick (optional, %s by default)\n",PACKAGE_NAME);
-	printf("\t-p <port>\tListening port (optional, 8675 by default)\n");
-	printf("\t-s <address>[:port]\tIRC server, default port is 6667\n");
-	printf("\t-u <path>\tPath to UNIX domain socket\n");
-	printf("\t-v\t\tIncrease logging verbosity, may be given more than once\n");
-	printf("\t-V\t\tPrint the version\n");
+	puts("\t-p <port>\tListening port (optional, 8675 by default)");
+	puts("\t-s <address>[:port]\tIRC server, default port is 6667");
+	puts("\t-u <path>\tPath to UNIX domain socket");
+	puts("\t-v\t\tIncrease logging verbosity, may be given more than once");
+	puts("\t-V\t\tPrint the version");
 	exit(retval);
 }
 
 static void print_version(void)
 {
 	printf("%s\n\n",PACKAGE_STRING);
-	printf("Copyright (c) 2008-2009, Christoph Mende <angelos@unkreativ.org>\n");
-	printf("All rights reserved. Released under the 2-clause BSD license.\n");
+	puts("Copyright (c) 2008-2009, Christoph Mende <angelos@unkreativ.org>");
+	puts("All rights reserved. Released under the 2-clause BSD license.");
 	exit(EXIT_SUCCESS);
 }
 
