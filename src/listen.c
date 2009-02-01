@@ -59,6 +59,7 @@ static int listen_tcp(void)
 		notify_log(ERROR,"[Listener] Failed to get address information: %s",gai_strerror(ret));
 		return -1;
 	}
+	if(result == NULL) return -1;
 
 	for(rp = result;rp != NULL;rp = rp->ai_next) {
 		if((sockfd = socket(rp->ai_family,rp->ai_socktype,
