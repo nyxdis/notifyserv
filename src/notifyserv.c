@@ -160,6 +160,7 @@ int main(int argc, char *argv[])
 			if(read(notify_info.irc_sockfd,buf,sizeof(buf)-1) > 0)
 				irc_parse(buf);
 			else {
+				notify_log(DEBUG,"[IRC] Read error: %s",strerror(errno));
 				notify_log(INFO,"Lost IRC connection, reconnecting.");
 				if(irc_connect() < 0) {
 					if(errno > 0)
