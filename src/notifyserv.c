@@ -14,6 +14,7 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <sys/un.h>
+#include <sys/socket.h>
 
 #include "notifyserv.h"
 
