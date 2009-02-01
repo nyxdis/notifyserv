@@ -5,14 +5,16 @@
  * All rights reserved. Released under the 2-clause BSD license.
  */
 
-#include <errno.h>
-#include <netdb.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 
+#include <errno.h>
 #include "notifyserv.h"
+
+#ifdef HAVE_NETDB_H
+#include <netdb.h>
+#endif
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
 
 static void irc_write(const char *string)
 {

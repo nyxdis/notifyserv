@@ -6,9 +6,19 @@
  */
 
 
-#include <stdbool.h>
-
+#include <stdio.h>
 #include "config.h"
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+#ifdef HAVE_STDBOOL_H
+#include <stdbool.h>
+#endif
+
 #include "misc.h"
 #include "irc.h"
 #include "listen.h"
