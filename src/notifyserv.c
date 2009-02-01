@@ -135,7 +135,6 @@ int main(int argc, char *argv[])
 	if(irc_connect() < 0) {
 		if(errno > 0)
 			notify_log(ERROR,"Failed to connect to IRC server: %s",strerror(errno));
-		free(prefs.bind_address);
 		cleanup();
 		exit(EXIT_FAILURE);
 	}
