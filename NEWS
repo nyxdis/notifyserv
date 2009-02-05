@@ -2,6 +2,7 @@
 - Fixed some minor memory leaks
 - Added IPv6 support
 - Reconnect to IRC after losing the connection
+- New input format: "#channel string" or "* string", the latter will forward the string to all channels
 
 == 2.0 (2009-01-25) ==
 - Major rewrite

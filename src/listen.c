@@ -110,7 +110,7 @@ int start_listener(void)
 
 void listen_forward(int orig, char *input)
 {
-	char *line, *saveptr, *origin;
+	char *channel, *line, *saveptr, *origin;
 	int i;
 
 	if(orig == 1) origin = strdup("TCP");
@@ -118,10 +118,20 @@ void listen_forward(int orig, char *input)
 
 	line = strtok_r(input,"\n",&saveptr);
 	do {
-		for(i=0;prefs.irc_chans[i] != NULL;i++)
-			irc_say(prefs.irc_chans[i],line);
-		notify_log(INFO,"Forwareded data from %s socket to IRC: %s",
-			origin,line);
+		if(line[0] != '#') {
+			if(line[0] != '*')
+				notify_log(INFO,"Received deprecated input format, the word should be the channel or *");
+			for(i=0;prefs.irc_chans[i] != NULL;i++)
+				irc_say(prefs.irc_chans[i],line);
+			notify_log(INFO,"Forwarded data from %s socket to IRC: %s",origin,line);
+		} else {
+			i = strcspn(line," ");
+			channel = malloc(i+1);
+			strncpy(channel,line,i);
+			channel[i] = '\0';
+			irc_say(channel,strstr(line," "));
+			notify_log(INFO,"Forwarded data from %s socket to IRC channel %s:%s",origin,channel,strstr(line," "));
+		}
 	} while((line = strtok_r(NULL,"\n",&saveptr)) != NULL);
 	free(origin);
 }
