@@ -7,6 +7,7 @@
 
 
 #include <errno.h>
+#include <limits.h>
 #include <signal.h>
 #include <sys/un.h>
 #include "notifyserv.h"
@@ -83,7 +84,8 @@ int main(int argc, char *argv[])
 				prefs.bind_address = strdup(optarg);
 				break;
 			case 'p':
-				prefs.bind_port = atoi(optarg);
+				if(strtol(optarg,NULL,10) > USHRT_MAX) break;
+				prefs.bind_port = strtol(optarg,NULL,10);
 				break;
 			case 'n':
 				free(prefs.irc_nick);
@@ -91,8 +93,12 @@ int main(int argc, char *argv[])
 				break;
 			case 's':
 				if(strstr(optarg,":")) {
-					prefs.irc_server = strdup(strtok(optarg,":"));
-					prefs.irc_port = atoi(strtok(NULL,":"));
+					int pos = strcspn(optarg,":");
+					prefs.irc_server = malloc(pos+1);
+					strncpy(prefs.irc_server,optarg,pos);
+					prefs.irc_server[pos] = '\0';
+					if(strtol(&optarg[pos+1],NULL,10) > USHRT_MAX) break;
+					prefs.irc_port = strtol(&optarg[pos+1],NULL,10);
 				} else {
 					prefs.irc_server = strdup(optarg);
 				}

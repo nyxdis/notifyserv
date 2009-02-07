@@ -28,9 +28,9 @@
 #include <sys/socket.h>
 #endif
 
-int server_connect(const char *host, int port)
+int server_connect(const char *host, unsigned short port)
 {
-	char service[5];
+	char service[6];
 	fd_set write_flags;
 	int sockfd = 0, valopt, ret;
 	socklen_t lon;
@@ -40,7 +40,7 @@ int server_connect(const char *host, int port)
 	memset(&hints,0,sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
-	sprintf(service,"%d",port);
+	sprintf(service,"%hu",port);
 
 	if((ret = getaddrinfo(host,service,&hints,&result)) != 0) {
 		notify_log(ERROR,"[IRC] Failed to get address information: %s",gai_strerror(ret));

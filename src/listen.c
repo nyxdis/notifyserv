@@ -54,13 +54,13 @@ static int listen_unix(void)
 static int listen_tcp(void)
 {
 	int sockfd, ret;
-	char service[5];
+	char service[6];
 	struct addrinfo hints, *result, *rp;
 
 	memset(&hints,0,sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
-	sprintf(service,"%d",prefs.bind_port);
+	sprintf(service,"%hu",prefs.bind_port);
 
 	if((ret = getaddrinfo(prefs.bind_address,service,&hints,&result)) != 0) {
 		notify_log(ERROR,"[Listener] Failed to get address information: %s",gai_strerror(ret));
@@ -85,7 +85,7 @@ static int listen_tcp(void)
 	if(listen(sockfd,5) < 0)
 		return -1;
 
-	notify_log(INFO,"Listening on %s:%d",prefs.bind_address,prefs.bind_port);
+	notify_log(INFO,"Listening on %s:%hu",prefs.bind_address,prefs.bind_port);
 
 	return sockfd;
 }

@@ -14,7 +14,7 @@ enum loglevel {
 };
 
 /* generic function to connect to IPv4 servers */
-int server_connect(const char *host, int port);
+int server_connect(const char *host, unsigned short port);
 
 /* Log events to a logfile or stdout */
 void notify_log(enum loglevel level, const char *format, ...);

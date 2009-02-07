@@ -32,9 +32,9 @@ struct preferences {
 	char *irc_nick;
 	char *irc_server;
 	char *sock_path;
-	int bind_port;
+	unsigned short bind_port;
 	int irc_chanc;
-	int irc_port;
+	unsigned short irc_port;
 	unsigned short verbosity;
 } prefs;
 
