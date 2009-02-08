@@ -54,6 +54,7 @@ int irc_connect(void)
 void irc_parse(char *string)
 {
 	char *channel, *line, *saveptr, *tmp;
+	char *nick, *ident, *host;
 	int i;
 
 	line = strtok_r(string,"\n",&saveptr);
@@ -102,6 +103,15 @@ void irc_parse(char *string)
 			memcpy(channel,tmp,i);
 			channel[i] = '\0';
 
+			/* we only care about the nick here, not before */
+			nick = malloc(strcspn(line," ")+1);
+			strncpy(nick,&line[1],strcspn(line," "));
+			host = strdup(&nick[strcspn(nick,"@")+1]);
+			host[strcspn(host," ")] = 0;
+			nick[strcspn(nick,"@")] = 0;
+			ident = strdup(&nick[strcspn(nick,"!")+1]);
+			nick[strcspn(nick,"!")] = 0;
+
 			/* These rely on channel being initialized */
 			if(asprintf(&tmp,"KICK %s %s :",channel,prefs.irc_nick) < 0) return;
 			if(strstr(line,tmp))
@@ -116,9 +126,9 @@ void irc_parse(char *string)
 			if(asprintf(&tmp,"PRIVMSG %s :!ping\r",channel) < 0) return;
 			if(strstr(line,tmp))
 			{
-				notify_log(DEBUG,"[IRC] %s pinged me, sending pong.",strtok(&line[1]," "));
+				notify_log(DEBUG,"[IRC] %s pinged me, sending pong.",nick);
 				free(tmp);
-				if(asprintf(&tmp,"%s: pong",strtok(&line[1],"!")) < 0) return;
+				if(asprintf(&tmp,"%s: pong",nick) < 0) return;
 				irc_say(channel,tmp);
 			}
 			free(tmp);
@@ -126,7 +136,7 @@ void irc_parse(char *string)
 			if(asprintf(&tmp,"PRIVMSG %s :!version\r",channel) < 0) return;
 			if(strstr(line,tmp))
 			{
-				notify_log(DEBUG,"[IRC] %s asked for my version.",strtok(&line[1]," "));
+				notify_log(DEBUG,"[IRC] %s asked for my version.",nick);
 				free(tmp);
 				if(asprintf(&tmp,"This is %s",PACKAGE_STRING) < 0) return;
 				irc_say(channel,tmp);
@@ -136,7 +146,7 @@ void irc_parse(char *string)
 			if(asprintf(&tmp,"PRIVMSG %s :!die\r",channel) < 0) return;
 			if(strstr(line,tmp))
 			{
-				notify_log(INFO,"Dying as requested by %s on IRC.",strtok(&line[1]," "));
+				notify_log(INFO,"Dying as requested by %s (%s@%s) on IRC.",nick,ident,host);
 				irc_write("QUIT :Dying");
 				free(channel);
 				free(tmp);
@@ -150,7 +160,7 @@ void irc_parse(char *string)
 			{
 				free(tmp);
 				free(channel);
-				notify_log(INFO,"Rebooting as requested by %s on IRC.",strtok(&line[1]," "));
+				notify_log(INFO,"Rebooting as requested by %s (%s@%s) on IRC.",nick,ident,host);
 				cleanup();
 				execv(notify_info.argv[0],notify_info.argv);
 			}
