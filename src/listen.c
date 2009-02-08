@@ -42,7 +42,7 @@ static int listen_unix(void)
 
 	unlink(addr.sun_path);
 
-	if(bind(sockfd,(struct sockaddr *)&addr,strlen(addr.sun_path) + sizeof(addr.sun_family)) < 0)
+	if(bind(sockfd,(struct sockaddr *)&addr,strlen(addr.sun_path) + sizeof addr.sun_family) < 0)
 		return -1;
 	if(listen(sockfd,5) < 0)
 		return -1;
@@ -57,7 +57,7 @@ static int listen_tcp(void)
 	char service[6];
 	struct addrinfo hints, *result, *rp;
 
-	memset(&hints,0,sizeof(hints));
+	memset(&hints,0,sizeof hints);
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	sprintf(service,"%hu",prefs.bind_port);

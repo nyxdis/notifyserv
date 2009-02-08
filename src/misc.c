@@ -37,7 +37,7 @@ int server_connect(const char *host, unsigned short port)
 	struct addrinfo hints, *result, *rp;
 	struct timeval timeout;
 
-	memset(&hints,0,sizeof(hints));
+	memset(&hints,0,sizeof hints);
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	sprintf(service,"%hu",port);
