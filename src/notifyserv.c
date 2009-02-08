@@ -244,9 +244,9 @@ static void print_usage(const char *exec, int retval)
 	puts("\t-d\t\tDisable TCP listener");
 	puts("\t-f\t\tRun in foreground");
 	puts("\t-h\t\tThis help");
-	printf("\t-i <ident>\tIRC ident (optional, %s by default)\n",PACKAGE);
+	puts("\t-i <ident>\tIRC ident (optional, " PACKAGE " by default)");
 	puts("\t-l <address>\tListen on the specified address (optional, localhost by default)");
-	printf("\t-n <nick>\tIRC nick (optional, %s by default)\n",PACKAGE_NAME);
+	puts("\t-n <nick>\tIRC nick (optional, " PACKAGE_NAME " by default)");
 	puts("\t-p <port>\tListening port (optional, 8675 by default)");
 	puts("\t-s <address>[:port]\tIRC server, default port is 6667");
 	puts("\t-u <path>\tPath to UNIX domain socket");
@@ -257,7 +257,7 @@ static void print_usage(const char *exec, int retval)
 
 static void print_version(void)
 {
-	printf("%s\n\n",PACKAGE_STRING);
+	puts(PACKAGE_STRING "\n");
 	puts("Copyright (c) 2008-2009, Christoph Mende <angelos@unkreativ.org>");
 	puts("All rights reserved. Released under the 2-clause BSD license.");
 	exit(EXIT_SUCCESS);
