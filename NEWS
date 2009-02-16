@@ -1,4 +1,6 @@
-== 2.1 (????-??-??) ==
+== 2.2 (????-??-??) ==
+
+== 2.1 (2009-02-16) ==
 - Fixed some minor memory leaks
 - Added IPv6 support
 - Reconnect to IRC after losing the connection
