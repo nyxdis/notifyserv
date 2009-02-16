@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <signal.h>
+#include <time.h>
 #include <sys/un.h>
 #include "notifyserv.h"
 
@@ -138,12 +139,13 @@ int main(int argc, char *argv[])
 		cleanup();
 		exit(EXIT_FAILURE);
 	}
-	if(irc_connect() < 0) {
+	while(irc_connect() < 0) {
 		if(errno > 0)
 			notify_log(ERROR,"Failed to connect to IRC server: %s",strerror(errno));
-		cleanup();
-		exit(EXIT_FAILURE);
+		notify_log(INFO,"Sleeping for 60 seconds before retrying IRC connection");
+		sleep(60);
 	}
+	notify_info.irc_connected = true;
 
 	for(;;)
 	{
@@ -168,12 +170,7 @@ int main(int argc, char *argv[])
 			else {
 				notify_log(DEBUG,"[IRC] Read error: %s",strerror(errno));
 				notify_log(INFO,"Lost IRC connection, reconnecting.");
-				if(irc_connect() < 0) {
-					if(errno > 0)
-						notify_log(ERROR,"Failed to connect to IRC server: %s",strerror(errno));
-					cleanup();
-					exit(EXIT_FAILURE);
-				}
+				notify_info.irc_connected = false;
 			}
 		}
 
@@ -203,6 +200,15 @@ int main(int argc, char *argv[])
 					notify_log(ERROR,"Read failed: %s",strerror(errno));
 				close(client);
 			}
+		}
+
+		if(notify_info.irc_connected == false && difftime(time(NULL),notify_info.irc_last_conn_try) > 60) {
+			if(irc_connect() < 0) {
+				if(errno > 0)
+					notify_log(ERROR,"Failed to connect to IRC server: %s",strerror(errno));
+				notify_info.irc_last_conn_try = time(NULL);
+			} else
+				notify_info.irc_connected = true;
 		}
 	}
 }
