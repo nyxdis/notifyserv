@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
 				break;
 		}
 
-	if(prefs.fork == true) {
+	if(prefs.fork)
 		if((notify_info.log_fp = fopen("notifyserv.log","a")) == NULL)
 		{
 			perror("Unable to open notifyserv.log for logging");
@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
 
 	if(chanc == 0 || prefs.irc_server == NULL) print_usage(argv[0],EXIT_FAILURE);
 
-	if(prefs.fork == true) daemonise();
+	if(prefs.fork) daemonise();
 
 	prefs.irc_chans[chanc] = NULL;
 
@@ -202,7 +202,7 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		if(notify_info.irc_connected == false && difftime(time(NULL),notify_info.irc_last_conn_try) > 60) {
+		if(!notify_info.irc_connected && difftime(time(NULL),notify_info.irc_last_conn_try) > 60) {
 			if(irc_connect() < 0) {
 				if(errno > 0)
 					notify_log(ERROR,"Failed to connect to IRC server: %s",strerror(errno));
@@ -236,7 +236,7 @@ void cleanup(void)
 	free(prefs.irc_ident);
 	free(prefs.irc_nick);
 	free(prefs.irc_server);
-	if(prefs.fork == true) fclose(notify_info.log_fp);
+	if(prefs.fork) fclose(notify_info.log_fp);
 	if(prefs.sock_path != NULL) unlink(prefs.sock_path);
 	free(prefs.sock_path);
 }

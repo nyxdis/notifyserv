@@ -102,7 +102,7 @@ void notify_log(enum loglevel level, const char *format, ...)
 
 	if(level > prefs.verbosity) return;
 
-	if(prefs.fork == false) fp = stdout;
+	if(!prefs.fork) fp = stdout;
 	else fp = notify_info.log_fp;
 
 	t = time(NULL);
