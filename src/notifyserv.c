@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
 				break;
 		}
 
-	if(prefs.fork)
+	if(prefs.fork) {
 		if((notify_info.log_fp = fopen("notifyserv.log","a")) == NULL)
 		{
 			perror("Unable to open notifyserv.log for logging");
