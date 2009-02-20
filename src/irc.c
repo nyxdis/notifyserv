@@ -53,7 +53,7 @@ int irc_connect(void)
 
 void irc_parse(char *string)
 {
-	char *channel, *line, *saveptr, *tmp;
+	char *channel, *line, *saveptr = NULL, *tmp;
 	char *nick, *ident, *host;
 	int i;
 

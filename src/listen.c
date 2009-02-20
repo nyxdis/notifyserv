@@ -110,7 +110,7 @@ int start_listener(void)
 
 void listen_forward(int orig, char *input)
 {
-	char *channel, *line, *saveptr, *origin;
+	char *channel, *line, *saveptr = NULL, *origin;
 	int i;
 
 	if(orig == 1) origin = strdup("TCP");
