@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 	struct sigaction sa;
 	struct sockaddr_in in_cli_addr;
 	struct sockaddr_un un_cli_addr;
-	char buf[512];
+	char *buf;
 
 	notify_info.argv = argv;
 
@@ -64,8 +64,15 @@ int main(int argc, char *argv[])
 		switch(c)
 		{
 			case 'c':
-				prefs.irc_chans[chanc] = optarg;
-				chanc++;
+				prefs.irc_chans = malloc(strlen(optarg)*2);
+				if(prefs.irc_chans == NULL)
+					exit(EXIT_FAILURE);
+				buf = strtok(optarg,",");
+				do {
+					prefs.irc_chans[chanc] = buf;
+					chanc++;
+				} while((buf = strtok(NULL,",")) != NULL);
+				prefs.irc_chans[chanc] = NULL;
 				break;
 			case 'd':
 				prefs.bind_address = NULL;
@@ -164,14 +171,16 @@ int main(int argc, char *argv[])
 
 		if(FD_ISSET(notify_info.irc_sockfd,&read_flags)) {
 			FD_CLR(notify_info.irc_sockfd,&read_flags);
-			memset(buf,0,sizeof buf);
-			if(read(notify_info.irc_sockfd,buf,sizeof buf - 1) > 0)
+			buf = malloc(MAX_BUF);
+			memset(buf,0,MAX_BUF);
+			if(read(notify_info.irc_sockfd,buf,MAX_BUF-1) > 0)
 				irc_parse(buf);
 			else {
 				notify_log(DEBUG,"[IRC] Read error: %s",strerror(errno));
 				notify_log(INFO,"Lost IRC connection, reconnecting.");
 				notify_info.irc_connected = false;
 			}
+			free(buf);
 		}
 
 		if(notify_info.listen_unix_sockfd > 0) {
@@ -179,12 +188,14 @@ int main(int argc, char *argv[])
 				FD_CLR(notify_info.listen_unix_sockfd,&read_flags);
 				len = sizeof un_cli_addr;
 				client = accept(notify_info.listen_unix_sockfd,(struct sockaddr *)&un_cli_addr,&len);
-				memset(buf,0,sizeof buf);
-				if(read(client,buf,sizeof buf - 1) > 0)
+				buf = malloc(MAX_BUF);
+				memset(buf,0,MAX_BUF);
+				if(read(client,buf,MAX_BUF-1) > 0)
 					listen_forward(0,buf);
 				else
 					notify_log(ERROR,"Read failed: %s",strerror(errno));
 				close(client);
+				free(buf);
 			}
 		}
 
@@ -193,12 +204,14 @@ int main(int argc, char *argv[])
 				FD_CLR(notify_info.listen_tcp_sockfd,&read_flags);
 				len = sizeof in_cli_addr;
 				client = accept(notify_info.listen_tcp_sockfd,(struct sockaddr *)&in_cli_addr,&len);
-				memset(buf,0,sizeof buf);
-				if(read(client,buf,sizeof buf - 1) > 0)
+				buf = malloc(MAX_BUF);
+				memset(buf,0,MAX_BUF);
+				if(read(client,buf,MAX_BUF-1) > 0)
 					listen_forward(1,buf);
 				else
 					notify_log(ERROR,"Read failed: %s",strerror(errno));
 				close(client);
+				free(buf);
 			}
 		}
 

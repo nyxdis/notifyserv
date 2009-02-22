@@ -23,11 +23,13 @@
 #include "irc.h"
 #include "listen.h"
 
+#define MAX_BUF 256 /* socket read buffer */
+
 /* User-defined options */
 struct preferences {
 	bool fork;
 	char *bind_address;
-	char *irc_chans[20];
+	char **irc_chans;
 	char *irc_ident;
 	char *irc_nick;
 	char *irc_server;
