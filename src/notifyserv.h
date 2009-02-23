@@ -23,7 +23,7 @@
 #include "irc.h"
 #include "listen.h"
 
-#define MAX_BUF 256 /* socket read buffer */
+#define MAX_BUF 1024 /* socket read buffer */
 
 /* User-defined options */
 struct preferences {
