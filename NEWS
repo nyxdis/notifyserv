@@ -1,4 +1,6 @@
 == 2.2 (????-??-??) ==
+- Remove 20 channel limit
+- New format for -c: Now takes a comma-separated list
 - Split the read buffer by hand instead of using strtok() to avoid truncated lines (fixes a problem when the ircd completely fills the read buffer on connect)
 
 == 2.1 (2009-02-16) ==
