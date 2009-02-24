@@ -30,7 +30,7 @@ static int daemonise(void);
 
 int main(int argc, char *argv[])
 {
-	int c, chanc = 0, client;
+	int c, chanc = 0, client, pos = 0;
 	socklen_t len;
 	fd_set read_flags;
 	struct sigaction sa;
@@ -102,12 +102,13 @@ int main(int argc, char *argv[])
 				break;
 			case 's':
 				if(strstr(optarg,":")) {
-					int pos = strcspn(optarg,":");
+					pos = strcspn(optarg,":");
 					prefs.irc_server = malloc(pos+1);
 					strncpy(prefs.irc_server,optarg,pos);
 					prefs.irc_server[pos] = '\0';
 					if(strtol(&optarg[pos+1],NULL,10) > USHRT_MAX) break;
 					prefs.irc_port = strtol(&optarg[pos+1],NULL,10);
+					pos = 0;
 				} else {
 					prefs.irc_server = strdup(optarg);
 				}
@@ -173,12 +174,17 @@ int main(int argc, char *argv[])
 		if(FD_ISSET(notify_info.irc_sockfd,&read_flags)) {
 			FD_CLR(notify_info.irc_sockfd,&read_flags);
 			memset(buf,0,MAX_BUF+1);
-			if(read(notify_info.irc_sockfd,buf,MAX_BUF) > 0) {
-				char *line;
-				line = strtok(buf,"\n");
-				do {
+			if(read(notify_info.irc_sockfd,&buf[pos],MAX_BUF-pos) > 0) {
+				char line[MAX_BUF];
+				pos = strcspn(buf,"\n");
+
+				while(strstr(buf,"\n")) {
+					memcpy(line,buf,pos);
+					line[pos] = 0;
 					irc_parse(line);
-				} while((line = strtok(NULL,"\n")) != NULL);
+					memmove(buf,&buf[pos+1],MAX_BUF-pos);
+					pos = strcspn(buf,"\n");
+				}
 			} else {
 				notify_log(DEBUG,"[IRC] Read error: %s",strerror(errno));
 				notify_log(INFO,"Lost IRC connection, reconnecting.");
