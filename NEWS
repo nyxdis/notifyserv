@@ -1,4 +1,5 @@
 == 2.2 (????-??-??) ==
+- Split the read buffer by hand instead of using strtok() to avoid truncated lines (fixes a problem when the ircd completely fills the read buffer on connect)
 
 == 2.1 (2009-02-16) ==
 - Fixed some minor memory leaks
