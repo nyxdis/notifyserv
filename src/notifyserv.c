@@ -8,9 +8,9 @@
 
 #include <errno.h>
 #include <limits.h>
+#include <poll.h>
 #include <signal.h>
 #include <time.h>
-#include <sys/un.h>
 #include "notifyserv.h"
 
 #ifdef HAVE_NETINET_IN_H
@@ -32,10 +32,9 @@ int main(int argc, char *argv[])
 {
 	int c, chanc = 0, client, pos = 0;
 	socklen_t len;
-	fd_set read_flags;
+	struct pollfd fds[2];
 	struct sigaction sa;
-	struct sockaddr_in in_cli_addr;
-	struct sockaddr_un un_cli_addr;
+	struct sockaddr cli_addr;
 	char buf[MAX_BUF+1];
 
 	notify_info.argv = argv;
@@ -48,8 +47,8 @@ int main(int argc, char *argv[])
 	prefs.irc_nick = strdup(PACKAGE_NAME);
 	prefs.irc_port = 6667;
 	prefs.sock_path = NULL;
-	notify_info.listen_unix_sockfd = 0;
-	notify_info.listen_tcp_sockfd = 0;
+	notify_info.listen_unix_sockfd = -1;
+	notify_info.listen_tcp_sockfd = -1;
 
 	/* Signal handler */
 	sa.sa_handler = sighandler;
@@ -156,25 +155,18 @@ int main(int argc, char *argv[])
 	}
 	notify_info.irc_connected = true;
 
+	fds[0].fd = notify_info.irc_sockfd;
+	fds[1].fd = notify_info.listen_tcp_sockfd;
+	fds[2].fd = notify_info.listen_unix_sockfd;
+	fds[0].events = fds[1].events = fds[2].events = POLLIN;
+
 	for(;;)
 	{
-		FD_ZERO(&read_flags);
-		FD_SET(notify_info.irc_sockfd,&read_flags);
-		if(notify_info.listen_tcp_sockfd > 0) FD_SET(notify_info.listen_tcp_sockfd,&read_flags);
-		if(notify_info.listen_unix_sockfd > 0) FD_SET(notify_info.listen_unix_sockfd,&read_flags);
+		poll(fds,3,1000);
 
-		if(notify_info.irc_sockfd > notify_info.listen_tcp_sockfd)
-			c = notify_info.irc_sockfd;
-		if(notify_info.listen_unix_sockfd > c)
-			c = notify_info.listen_unix_sockfd;
-
-		if(select(c+1,&read_flags,NULL,NULL,NULL) < 0)
-			continue;
-
-		if(FD_ISSET(notify_info.irc_sockfd,&read_flags)) {
-			FD_CLR(notify_info.irc_sockfd,&read_flags);
+		if(fds[0].revents & POLLIN) {
 			memset(buf,0,MAX_BUF+1);
-			if(read(notify_info.irc_sockfd,&buf[pos],MAX_BUF-pos) > 0) {
+			if(read(fds[0].fd,&buf[pos],MAX_BUF-pos) > 0) {
 				char line[MAX_BUF];
 				pos = strcspn(buf,"\n");
 
@@ -187,37 +179,11 @@ int main(int argc, char *argv[])
 				}
 			} else {
 				notify_log(DEBUG,"[IRC] Read error: %s",strerror(errno));
-				notify_log(INFO,"Lost IRC connection, reconnecting.");
-				notify_info.irc_connected = false;
 			}
 		}
-
-		if(notify_info.listen_unix_sockfd > 0) {
-			if(FD_ISSET(notify_info.listen_unix_sockfd,&read_flags)) {
-				FD_CLR(notify_info.listen_unix_sockfd,&read_flags);
-				len = sizeof un_cli_addr;
-				client = accept(notify_info.listen_unix_sockfd,(struct sockaddr *)&un_cli_addr,&len);
-				memset(buf,0,MAX_BUF+1);
-				if(read(client,buf,MAX_BUF) > 0)
-					listen_forward(0,buf);
-				else
-					notify_log(ERROR,"Read failed: %s",strerror(errno));
-				close(client);
-			}
-		}
-
-		if(notify_info.listen_tcp_sockfd > 0) {
-			if(FD_ISSET(notify_info.listen_tcp_sockfd,&read_flags)) {
-				FD_CLR(notify_info.listen_tcp_sockfd,&read_flags);
-				len = sizeof in_cli_addr;
-				client = accept(notify_info.listen_tcp_sockfd,(struct sockaddr *)&in_cli_addr,&len);
-				memset(buf,0,MAX_BUF+1);
-				if(read(client,buf,MAX_BUF) > 0)
-					listen_forward(1,buf);
-				else
-					notify_log(ERROR,"Read failed: %s",strerror(errno));
-				close(client);
-			}
+		if(fds[0].revents & POLLHUP) {
+			notify_log(INFO,"Lost IRC connection, reconnecting.");
+			notify_info.irc_connected = false;
 		}
 
 		if(!notify_info.irc_connected && difftime(time(NULL),notify_info.irc_last_conn_try) > 60) {
@@ -227,6 +193,19 @@ int main(int argc, char *argv[])
 				notify_info.irc_last_conn_try = time(NULL);
 			} else
 				notify_info.irc_connected = true;
+		}
+
+		for(c=1;c<3;c++) {
+			if(fds[c].revents & POLLIN) {
+				len = sizeof cli_addr;
+				client = accept(fds[c].fd,&cli_addr,&len);
+				memset(buf,0,MAX_BUF+1);
+				if(read(client,buf,MAX_BUF) > 0)
+					listen_forward(buf);
+				else
+					notify_log(ERROR,"Read failed: %s",strerror(errno));
+				close(client);
+			}
 		}
 	}
 }

@@ -10,4 +10,4 @@
 int start_listener(void);
 
 /* Forward input from listening sockets */
-void listen_forward(int orig, char *input);
+void listen_forward(char *input);
