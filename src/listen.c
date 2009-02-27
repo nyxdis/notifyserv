@@ -113,6 +113,10 @@ void listen_forward(char *input)
 	char *channel, *line, *saveptr = NULL;
 	int i;
 
+	/* We cannot forward data when we're not connected to IRC */
+	if(notify_info.irc_connected == false)
+		return;
+		
 	line = strtok_r(input,"\n",&saveptr);
 	do {
 		if(line[0] != '#') {
