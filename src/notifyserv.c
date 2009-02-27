@@ -59,6 +59,7 @@ int main(int argc, char *argv[])
 	sigaction(SIGQUIT,&sa,NULL);
 	sigaction(SIGHUP,&sa,NULL);
 
+	/* Parse command-line options */
 	while((c = getopt(argc,argv,"c:dfhi:l:n:p:s:u:vV")) != -1)
 		switch(c)
 		{
@@ -123,6 +124,7 @@ int main(int argc, char *argv[])
 				break;
 		}
 
+	/* Open the log file when forking or log to stdout when opening failed */
 	if(prefs.fork) {
 		if((notify_info.log_fp = fopen("notifyserv.log","a")) == NULL)
 		{
@@ -133,12 +135,14 @@ int main(int argc, char *argv[])
 
 	if(chanc == 0 || prefs.irc_server == NULL) print_usage(argv[0],EXIT_FAILURE);
 
+	/* Fork when wanted */
 	if(prefs.fork) daemonise();
 
 	prefs.irc_chans[chanc] = NULL;
 
 	notify_log(INFO,"%s started",PACKAGE_STRING);
 
+	/* Fire up listening sockets */
 	if(start_listener() < 0) {
 		if(errno > 0)
 			notify_log(ERROR,"Failed to start listener: %s",strerror(errno));
@@ -147,6 +151,8 @@ int main(int argc, char *argv[])
 		cleanup();
 		exit(EXIT_FAILURE);
 	}
+
+	/* Connect to IRC, retry until successful */
 	while(irc_connect() < 0) {
 		if(errno > 0)
 			notify_log(ERROR,"Failed to connect to IRC server: %s",strerror(errno));
@@ -164,6 +170,7 @@ int main(int argc, char *argv[])
 	{
 		poll(fds,3,1000);
 
+		/* Data available on the IRC socket */
 		if(fds[0].revents & POLLIN) {
 			memset(buf,0,MAX_BUF+1);
 			if(read(fds[0].fd,&buf[pos],MAX_BUF-pos) > 0) {
@@ -196,6 +203,7 @@ int main(int argc, char *argv[])
 		}
 
 		for(c=1;c<3;c++) {
+			/* Data available on the listening sockets */
 			if(fds[c].revents & POLLIN) {
 				len = sizeof cli_addr;
 				client = accept(fds[c].fd,&cli_addr,&len);
@@ -210,6 +218,7 @@ int main(int argc, char *argv[])
 	}
 }
 
+/* fork() wrapper */
 static int daemonise(void)
 {
 	pid_t pid;
@@ -223,6 +232,7 @@ static int daemonise(void)
 	return 0;
 }
 
+/* Cleanup handler, frees still used data */
 void cleanup(void)
 {
 	if(notify_info.irc_sockfd > 0) close(notify_info.irc_sockfd);
@@ -238,6 +248,7 @@ void cleanup(void)
 	free(prefs.sock_path);
 }
 
+/* Help output */
 static void print_usage(const char *exec, int retval)
 {
 	printf("Usage: %s -c <channel> -s <address>[:port] [OPTIONS]\n",exec);
@@ -258,6 +269,7 @@ static void print_usage(const char *exec, int retval)
 	exit(retval);
 }
 
+/* Print the version */
 static void print_version(void)
 {
 	puts(PACKAGE_STRING "\n");
@@ -266,6 +278,9 @@ static void print_version(void)
 	exit(EXIT_SUCCESS);
 }
 
+/* Signal handler function, called by sigaction for SIGINT, SIGTERM and SIGQUIT
+ * This function is also called when SIGHUP is received, but doesn't actually
+ * do anything in that case */
 static void sighandler(int sig)
 {
 	if(sig == SIGHUP) {

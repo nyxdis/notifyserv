@@ -26,6 +26,7 @@
 #include <sys/socket.h>
 #endif
 
+/* Start a listening Unix domain socket */
 static int listen_unix(void)
 {
 	int sockfd;
@@ -51,6 +52,7 @@ static int listen_unix(void)
 	return sockfd;
 }
 
+/* Start a listening TCP socket */
 static int listen_tcp(void)
 {
 	int sockfd, ret;
@@ -90,6 +92,7 @@ static int listen_tcp(void)
 	return sockfd;
 }
 
+/* Start specified listening sockets */
 int start_listener(void)
 {
 	if(prefs.sock_path != NULL) {
@@ -108,6 +111,7 @@ int start_listener(void)
 	return 0;
 }
 
+/* Parse input from listening sockets */
 void listen_forward(char *input)
 {
 	char *channel, *line, *saveptr = NULL;

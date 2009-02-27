@@ -16,6 +16,7 @@
 #include <string.h>
 #endif
 
+/* Send data to the IRC socket after terminating it with \r\n */
 static void irc_write(const char *string)
 {
 	char *tmp;
@@ -24,6 +25,7 @@ static void irc_write(const char *string)
 	free(tmp);
 }
 
+/* Prepend 'PRIVMSG chan :' and send that to irc_write */
 void irc_say(const char *channel, const char *string)
 {
 	char *tmp;
@@ -32,6 +34,7 @@ void irc_say(const char *channel, const char *string)
 	free(tmp);
 }
 
+/* Connect to the IRC server */
 int irc_connect(void)
 {
 	char *tmp;
@@ -51,6 +54,7 @@ int irc_connect(void)
 	return 0;
 }
 
+/* Parse IRC input */
 void irc_parse(char *line)
 {
 	char *channel, *tmp;

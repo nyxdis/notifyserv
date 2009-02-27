@@ -28,6 +28,7 @@
 #include <sys/socket.h>
 #endif
 
+/* Generic IPv6-capable connect function that opens a socket and connects it */
 int server_connect(const char *host, unsigned short port)
 {
 	char service[6];
@@ -93,6 +94,7 @@ int server_connect(const char *host, unsigned short port)
 	return sockfd;
 }
 
+/* Logging function */
 void notify_log(enum loglevel level, const char *format, ...)
 {
 	char *ts;
@@ -107,7 +109,6 @@ void notify_log(enum loglevel level, const char *format, ...)
 
 	t = time(NULL);
 	ts = malloc(22);
-	/* strftime(ts,22,"%F %T  ",localtime(&t)); */
 	strftime(ts,22,"%Y-%m-%d %H:%M:%S  ",localtime(&t));
 	fputs(ts,fp);
 	free(ts);
