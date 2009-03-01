@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 {
 	int c, chanc = 0, client, pos = 0;
 	socklen_t len;
-	struct pollfd fds[2];
+	struct pollfd fds[3];
 	struct sigaction sa;
 	struct sockaddr cli_addr;
 	char buf[MAX_BUF+1];
@@ -73,7 +73,6 @@ int main(int argc, char *argv[])
 					prefs.irc_chans[chanc] = tmp;
 					chanc++;
 				} while((tmp = strtok(NULL,",")) != NULL);
-				prefs.irc_chans[chanc] = NULL;
 				break;
 			case 'd':
 				prefs.bind_address = NULL;
