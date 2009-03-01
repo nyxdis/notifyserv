@@ -1,7 +1,8 @@
 == 2.2 (????-??-??) ==
 - Remove 20 channel limit
+- Don't try to forward data when the IRC socket is disconnected 
 - New format for -c: Now takes a comma-separated list
-- Split the read buffer by hand instead of using strtok() to avoid truncated lines (fixes a problem when the ircd completely fills the read buffer on connect)
+- Fixed a problem where the IRC input buffer was truncated
 
 == 2.1 (2009-02-16) ==
 - Fixed some minor memory leaks
