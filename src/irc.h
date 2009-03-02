@@ -6,6 +6,9 @@
  */
 
 
+/* Max IRC line length */
+#define IRC_MAX 256
+
 /* Connect to IRC */
 int irc_connect(void);
 

@@ -19,37 +19,33 @@
 /* Send data to the IRC socket after terminating it with \r\n */
 static void irc_write(const char *string)
 {
-	char *tmp;
-	if(asprintf(&tmp,"%s\r\n",string) < 0) return;
+	char tmp[IRC_MAX];
+	snprintf(tmp,IRC_MAX,"%s\r\n",string);
 	if(write(notify_info.irc_sockfd,tmp,strlen(tmp)) < 0) return;
-	free(tmp);
 }
 
 /* Prepend 'PRIVMSG chan :' and send that to irc_write */
 void irc_say(const char *channel, const char *string)
 {
-	char *tmp;
-	if(asprintf(&tmp,"PRIVMSG %s :%s",channel,string) < 0) return;
+	char tmp[IRC_MAX];
+	snprintf(tmp,IRC_MAX,"PRIVMSG %s :%s",channel,string);
 	irc_write(tmp);
-	free(tmp);
 }
 
 /* Connect to the IRC server */
 int irc_connect(void)
 {
-	char *tmp;
+	char tmp[IRC_MAX];
 
 	notify_info.irc_sockfd = server_connect(prefs.irc_server,prefs.irc_port);
 	if(notify_info.irc_sockfd < 0)
 		return -1;
 	notify_log(INFO,"Connected to IRC server");
 
-	if(asprintf(&tmp,"USER %s ns ns :%s",prefs.irc_ident,PACKAGE_STRING) < 0) return -1;
+	snprintf(tmp,IRC_MAX,"USER %s ns ns :" PACKAGE_STRING,prefs.irc_ident);
 	irc_write(tmp);
-	free(tmp);
-	if(asprintf(&tmp,"NICK %s",prefs.irc_nick) < 0) return -1;
+	snprintf(tmp,IRC_MAX,"NICK %s",prefs.irc_nick);
 	irc_write(tmp);
-	free(tmp);
 
 	return 0;
 }
@@ -57,7 +53,7 @@ int irc_connect(void)
 /* Parse IRC input */
 void irc_parse(char *line)
 {
-	char *channel, *tmp;
+	char *channel, tmp[IRC_MAX];
 	char *nick, *ident, *host;
 	int i;
 
@@ -67,42 +63,37 @@ void irc_parse(char *line)
 		exit(EXIT_FAILURE);
 	}
 
-	if(asprintf(&tmp,"433 * %s :Nickname is already in use.\r",prefs.irc_nick) < 0) return;
+	snprintf(tmp,IRC_MAX,"433 * %s :Nickname is already in use.\r",prefs.irc_nick);
 	if(strstr(line,tmp)) {
-		free(tmp);
 		notify_log(ERROR,"[IRC] Nickname is already in use.");
 		cleanup();
 		exit(EXIT_FAILURE);
 	}
-	free(tmp);
 
 	if(strncmp(line,"PING :",6) == 0)
 	{
 		notify_log(DEBUG,"[IRC] Sending PONG :%s",&line[6]);
-		if(asprintf(&tmp,"PONG :%s",&line[6]) < 0) return;
+		snprintf(tmp,IRC_MAX,"PONG :%s",&line[6]);
 		irc_write(tmp);
-		free(tmp);
 	}
 
-	if(asprintf(&tmp,"001 %s :Welcome to the",prefs.irc_nick) < 0) return;
+	snprintf(tmp,IRC_MAX,"001 %s :Welcome to the",prefs.irc_nick);
 	if(strstr(line,tmp))
 	{
 		notify_log(INFO,"[IRC] Connection complete.");
 		for(i=0;prefs.irc_chans[i] != NULL;i++)
 		{
-			free(tmp);
 			notify_log(INFO,"[IRC] Joining %s.",prefs.irc_chans[i]);
-			if(asprintf(&tmp,"JOIN %s",prefs.irc_chans[i]) < 0) return;
+			snprintf(tmp,IRC_MAX,"JOIN %s",prefs.irc_chans[i]);
 			irc_write(tmp);
 		}
 	}
-	free(tmp);
 
-	if((tmp = strstr(line,"#")) != NULL) {
-		if((i = strcspn(tmp," ")) < 2)
+	if(strstr(line,"#")) {
+		if((i = strcspn(strstr(line,"#")," ")) < 2)
 			return;
 		if((channel = malloc(i+1)) == NULL) return;
-		memcpy(channel,tmp,i);
+		strncpy(channel,strstr(line,"#"),i);
 		channel[i] = '\0';
 
 		/* we only care about the nick here, not before */
@@ -115,58 +106,47 @@ void irc_parse(char *line)
 		nick[strcspn(nick,"!")] = 0;
 
 		/* These rely on channel being initialized */
-		if(asprintf(&tmp,"KICK %s %s :",channel,prefs.irc_nick) < 0) return;
+		snprintf(tmp,IRC_MAX,"KICK %s %s :",channel,prefs.irc_nick);
 		if(strstr(line,tmp))
 		{
 			notify_log(INFO,"[IRC] Kicked from %s, rejoining.",channel);
-			free(tmp);
-			if(asprintf(&tmp,"JOIN %s",channel) < 0) return;
+			snprintf(tmp,IRC_MAX,"JOIN %s",channel);
 			irc_write(tmp);
 		}
-		free(tmp);
 
-		if(asprintf(&tmp,"PRIVMSG %s :!ping\r",channel) < 0) return;
+		snprintf(tmp,IRC_MAX,"PRIVMSG %s :!ping\r",channel);
 		if(strstr(line,tmp))
 		{
 			notify_log(DEBUG,"[IRC] %s pinged me, sending pong.",nick);
-			free(tmp);
-			if(asprintf(&tmp,"%s: pong",nick) < 0) return;
+			snprintf(tmp,IRC_MAX,"%s: pong",nick);
 			irc_say(channel,tmp);
 		}
-		free(tmp);
 
-		if(asprintf(&tmp,"PRIVMSG %s :!version\r",channel) < 0) return;
+		snprintf(tmp,IRC_MAX,"PRIVMSG %s :!version\r",channel);
 		if(strstr(line,tmp))
 		{
 			notify_log(DEBUG,"[IRC] %s asked for my version.",nick);
-			free(tmp);
-			if(asprintf(&tmp,"This is %s",PACKAGE_STRING) < 0) return;
-			irc_say(channel,tmp);
+			irc_say(channel,"This is " PACKAGE_STRING);
 		}
-		free(tmp);
 
-		if(asprintf(&tmp,"PRIVMSG %s :!die\r",channel) < 0) return;
+		snprintf(tmp,IRC_MAX,"PRIVMSG %s :!die\r",channel);
 		if(strstr(line,tmp))
 		{
 			notify_log(INFO,"Dying as requested by %s (%s@%s) on IRC.",nick,ident,host);
 			irc_write("QUIT :Dying");
 			free(channel);
-			free(tmp);
 			cleanup();
 			exit(EXIT_SUCCESS);
 		}
-		free(tmp);
 
-		if(asprintf(&tmp,"PRIVMSG %s :!reboot\r",channel) < 0) return;
+		snprintf(tmp,IRC_MAX,"PRIVMSG %s :!reboot\r",channel);
 		if(strstr(line,tmp))
 		{
-			free(tmp);
 			free(channel);
 			notify_log(INFO,"Rebooting as requested by %s (%s@%s) on IRC.",nick,ident,host);
 			cleanup();
 			execv(notify_info.argv[0],notify_info.argv);
 		}
-		free(tmp);
 		free(channel);
 	}
 }

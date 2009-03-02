@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
 
 	prefs.irc_chans[chanc] = NULL;
 
-	notify_log(INFO,"%s started",PACKAGE_STRING);
+	notify_log(INFO,PACKAGE_STRING "started");
 
 	/* Fire up listening sockets */
 	if(start_listener() < 0) {
