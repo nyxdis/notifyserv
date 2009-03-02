@@ -4,7 +4,7 @@ AC_PREREQ([2.59])
 AC_INIT([NotifyServ], [2.2], [angelos@unkreativ.org], [notifyserv])
 AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_HEADERS([config.h])
-AM_INIT_AUTOMAKE([dist-bzip2 foreign])
+AM_INIT_AUTOMAKE([dist-bzip2 foreign 1.10])
 
 # Checks for programs.
 AC_PROG_CC

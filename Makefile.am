@@ -1,5 +1,3 @@
-CFLAGS += -Wall -Wextra -Wmissing-declarations -Wredundant-decls -Wshadow -Wwrite-strings -Wswitch-enum
-
 bin_PROGRAMS = notifyserv
 dist_man_MANS = notifyserv.1
 
