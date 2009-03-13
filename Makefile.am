@@ -11,3 +11,5 @@ notifyserv.1: notifyserv
 
 clean:	clean-am
 	rm -f notifyserv.1
+
+DEFS += -D_BSD_SOURCE -D_POSIX_C_SOURCE=2
