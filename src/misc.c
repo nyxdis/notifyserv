@@ -95,7 +95,7 @@ int server_connect(const char *host, unsigned short port)
 }
 
 /* Logging function */
-void notify_log(enum loglevel level, const char *format, ...)
+void notify_log(loglevel level, const char *format, ...)
 {
 	char *ts;
 	time_t t;

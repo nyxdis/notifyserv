@@ -26,7 +26,7 @@
 #define MAX_BUF 1024 /* socket read buffer */
 
 /* User-defined options */
-struct preferences {
+struct {
 	bool fork;
 	char *bind_address;
 	char **irc_chans;
@@ -41,7 +41,7 @@ struct preferences {
 } prefs;
 
 /* Internal data */
-struct notify_info {
+struct {
 	int irc_sockfd;
 	int listen_unix_sockfd;
 	int listen_tcp_sockfd;
