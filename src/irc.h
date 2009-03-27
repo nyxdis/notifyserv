@@ -13,7 +13,7 @@
 int irc_connect(void);
 
 /* Parse input read on the IRC sockfd */
-void irc_parse(char *string);
+void irc_parse(const char *string);
 
 /* Send text to an IRC channel */
 void irc_say(const char *channel, const char *string);

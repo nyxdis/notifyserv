@@ -61,18 +61,16 @@ int main(int argc, char *argv[])
 
 	/* Parse command-line options */
 	while((c = getopt(argc,argv,"c:dfhi:l:n:p:s:u:vV")) != -1)
-		switch(c)
-		{
+		switch(c) {
 			char *tmp;
 			case 'c':
-				prefs.irc_chans = malloc(strlen(optarg)*2);
-				if(prefs.irc_chans == NULL)
+				if(!(prefs.irc_chans = malloc(strlen(optarg)*2)))
 					exit(EXIT_FAILURE);
 				tmp = strtok(optarg,",");
 				do {
 					prefs.irc_chans[chanc] = tmp;
 					chanc++;
-				} while((tmp = strtok(NULL,",")) != NULL);
+				} while((tmp = strtok(NULL,",")));
 				break;
 			case 'd':
 				prefs.bind_address = NULL;
@@ -125,14 +123,13 @@ int main(int argc, char *argv[])
 
 	/* Open the log file when forking or log to stdout when opening failed */
 	if(prefs.fork) {
-		if((notify_info.log_fp = fopen("notifyserv.log","a")) == NULL)
-		{
+		if(!(notify_info.log_fp = fopen("notifyserv.log","a"))) {
 			perror("Unable to open notifyserv.log for logging");
 			exit(EXIT_FAILURE);
 		}
 	}
 
-	if(chanc == 0 || prefs.irc_server == NULL) print_usage(argv[0],EXIT_FAILURE);
+	if(!chanc || !prefs.irc_server) print_usage(argv[0],EXIT_FAILURE);
 
 	/* Fork when wanted */
 	if(prefs.fork) daemonise();
@@ -243,7 +240,7 @@ void cleanup(void)
 	free(prefs.irc_nick);
 	free(prefs.irc_server);
 	if(prefs.fork) fclose(notify_info.log_fp);
-	if(prefs.sock_path != NULL) unlink(prefs.sock_path);
+	if(prefs.sock_path) unlink(prefs.sock_path);
 	free(prefs.sock_path);
 }
 

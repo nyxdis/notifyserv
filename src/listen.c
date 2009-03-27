@@ -68,9 +68,9 @@ static int listen_tcp(void)
 		notify_log(ERROR,"[Listener] Failed to get address information: %s",gai_strerror(ret));
 		return -1;
 	}
-	if(result == NULL) return -1;
+	if(!result) return -1;
 
-	for(rp = result;rp != NULL;rp = rp->ai_next) {
+	for(rp = result;rp;rp = rp->ai_next) {
 		if((sockfd = socket(rp->ai_family,rp->ai_socktype,
 			rp->ai_protocol)) < 0) continue;
 
@@ -95,16 +95,16 @@ static int listen_tcp(void)
 /* Start specified listening sockets */
 int start_listener(void)
 {
-	if(prefs.sock_path != NULL) {
+	if(prefs.sock_path) {
 		if((notify_info.listen_unix_sockfd = listen_unix()) < 0)
 			return -1;
 	}
-	if(prefs.bind_address != NULL) {
+	if(prefs.bind_address) {
 		if((notify_info.listen_tcp_sockfd = listen_tcp()) < 0)
 			return -1;
 		free(prefs.bind_address);
 	}
-	if(prefs.sock_path == NULL && prefs.bind_address == NULL) {
+	if(!prefs.sock_path && !prefs.bind_address) {
 		notify_log(ERROR,"No Unix domain socket path defined and TCP sockets disabled.");
 		return -1;
 	}
@@ -120,13 +120,13 @@ void listen_forward(char *input)
 	/* We cannot forward data when we're not connected to IRC */
 	if(notify_info.irc_connected == false)
 		return;
-		
+
 	line = strtok_r(input,"\n",&saveptr);
 	do {
 		if(line[0] != '#') {
 			if(line[0] != '*')
 				notify_log(INFO,"Received deprecated input format, the word should be the channel or *");
-			for(i=0;prefs.irc_chans[i] != NULL;i++)
+			for(i=0;prefs.irc_chans[i];i++)
 				irc_say(prefs.irc_chans[i],line);
 			notify_log(INFO,"Forwarded data to IRC: %s",line);
 		} else {
@@ -137,5 +137,5 @@ void listen_forward(char *input)
 			irc_say(channel,strstr(line," "));
 			notify_log(INFO,"Forwarded data to IRC channel %s:%s",channel,strstr(line," "));
 		}
-	} while((line = strtok_r(NULL,"\n",&saveptr)) != NULL);
+	} while((line = strtok_r(NULL,"\n",&saveptr)));
 }

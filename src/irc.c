@@ -51,7 +51,7 @@ int irc_connect(void)
 }
 
 /* Parse IRC input */
-void irc_parse(char *line)
+void irc_parse(const char *line)
 {
 	char *channel, tmp[IRC_MAX];
 	char *nick, *ident, *host;
@@ -81,8 +81,7 @@ void irc_parse(char *line)
 	if(strstr(line,tmp))
 	{
 		notify_log(INFO,"[IRC] Connection complete.");
-		for(i=0;prefs.irc_chans[i] != NULL;i++)
-		{
+		for(i=0;prefs.irc_chans[i];i++) {
 			notify_log(INFO,"[IRC] Joining %s.",prefs.irc_chans[i]);
 			snprintf(tmp,IRC_MAX,"JOIN %s",prefs.irc_chans[i]);
 			irc_write(tmp);
@@ -92,7 +91,7 @@ void irc_parse(char *line)
 	if(strstr(line,"#")) {
 		if((i = strcspn(strstr(line,"#")," ")) < 2)
 			return;
-		if((channel = malloc(i+1)) == NULL) return;
+		if(!(channel = malloc(i+1))) return;
 		strncpy(channel,strstr(line,"#"),i);
 		channel[i] = '\0';
 
@@ -107,31 +106,27 @@ void irc_parse(char *line)
 
 		/* These rely on channel being initialized */
 		snprintf(tmp,IRC_MAX,"KICK %s %s :",channel,prefs.irc_nick);
-		if(strstr(line,tmp))
-		{
+		if(strstr(line,tmp)) {
 			notify_log(INFO,"[IRC] Kicked from %s, rejoining.",channel);
 			snprintf(tmp,IRC_MAX,"JOIN %s",channel);
 			irc_write(tmp);
 		}
 
 		snprintf(tmp,IRC_MAX,"PRIVMSG %s :!ping\r",channel);
-		if(strstr(line,tmp))
-		{
+		if(strstr(line,tmp)) {
 			notify_log(DEBUG,"[IRC] %s pinged me, sending pong.",nick);
 			snprintf(tmp,IRC_MAX,"%s: pong",nick);
 			irc_say(channel,tmp);
 		}
 
 		snprintf(tmp,IRC_MAX,"PRIVMSG %s :!version\r",channel);
-		if(strstr(line,tmp))
-		{
+		if(strstr(line,tmp)) {
 			notify_log(DEBUG,"[IRC] %s asked for my version.",nick);
 			irc_say(channel,"This is " PACKAGE_STRING);
 		}
 
 		snprintf(tmp,IRC_MAX,"PRIVMSG %s :!die\r",channel);
-		if(strstr(line,tmp))
-		{
+		if(strstr(line,tmp)) {
 			notify_log(INFO,"Dying as requested by %s (%s@%s) on IRC.",nick,ident,host);
 			irc_write("QUIT :Dying");
 			free(channel);
@@ -140,8 +135,7 @@ void irc_parse(char *line)
 		}
 
 		snprintf(tmp,IRC_MAX,"PRIVMSG %s :!reboot\r",channel);
-		if(strstr(line,tmp))
-		{
+		if(strstr(line,tmp)) {
 			free(channel);
 			notify_log(INFO,"Rebooting as requested by %s (%s@%s) on IRC.",nick,ident,host);
 			cleanup();
