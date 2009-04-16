@@ -181,7 +181,8 @@ int main(int argc, char *argv[])
 					pos = strcspn(buf,"\n");
 				}
 			} else {
-				notify_log(DEBUG,"[IRC] Read error: %s",strerror(errno));
+				notify_log(INFO,"Lost IRC connection, reconnecting.");
+				notify_info.irc_connected = false;
 			}
 		}
 		if(fds[0].revents & POLLHUP) {
