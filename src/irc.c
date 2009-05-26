@@ -59,7 +59,7 @@ void irc_parse(const char *line)
 
 	if(strncmp(line,"ERROR :",7) == 0) {
 		if(strstr(line,"Connection timed out")) {
-			notify_info.connected = 0;
+			notify_info.irc_connected = 0;
 			close(notify_info.irc_sockfd);
 			return;
 		}
