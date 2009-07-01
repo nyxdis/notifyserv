@@ -125,7 +125,7 @@ void listen_forward(char *input)
 	do {
 		if(line[0] != '#') {
 			if(line[0] != '*')
-				notify_log(INFO,"Received deprecated input format, the word should be the channel or *");
+				notify_log(INFO,"Received deprecated input format, the first word should be the channel or *");
 			for(i=0;prefs.irc_chans[i];i++)
 				irc_say(prefs.irc_chans[i],line);
 			notify_log(INFO,"Forwarded data to IRC: %s",line);
@@ -134,8 +134,8 @@ void listen_forward(char *input)
 			channel = malloc(i+1);
 			strncpy(channel,line,i);
 			channel[i] = '\0';
-			irc_say(channel,strstr(line," "));
-			notify_log(INFO,"Forwarded data to IRC channel %s:%s",channel,strstr(line," "));
+			irc_say(channel,&line[i]);
+			notify_log(INFO,"Forwarded data to IRC channel %s:%s",channel,&line[i]);
 		}
 	} while((line = strtok_r(NULL,"\n",&saveptr)));
 }
