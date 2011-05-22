@@ -8,8 +8,10 @@
 
 #include <errno.h>
 #include <stdarg.h>
-#include <time.h>
 #include <sys/un.h>
+
+#include <glib.h>
+
 #include "notifyserv.h"
 
 #ifdef HAVE_FCNTL_H
@@ -95,28 +97,31 @@ int server_connect(const char *host, unsigned short port)
 }
 
 /* Logging function */
-void notify_log(loglevel level, const char *format, ...)
+void notify_log(loglevel level, const gchar *format, ...)
 {
+	GDateTime *datetime;
 	char *ts;
-	time_t t;
 	va_list ap;
 	FILE *fp;
 
-	if(level > prefs.verbosity) return;
+	if (level > prefs.verbosity)
+		return;
 
-	if(!prefs.fork) fp = stdout;
-	else fp = notify_info.log_fp;
+	if (!prefs.fork)
+		fp = stdout;
+	else
+		fp = notify_info.log_fp;
 
-	t = time(NULL);
-	ts = malloc(22);
-	strftime(ts,22,"%Y-%m-%d %H:%M:%S  ",localtime(&t));
-	fputs(ts,fp);
-	free(ts);
 
-	va_start(ap,format);
-	vfprintf(fp,format,ap);
+	datetime = g_date_time_new_now_local();
+	ts = g_date_time_format(datetime, "%Y-%m-%d %H:%M:%S  ");
+	fputs(ts, fp);
+	g_free(ts);
+
+	va_start(ap, format);
+	vfprintf(fp, format, ap);
 	va_end(ap);
 
-	fputs("\n",fp);
+	fputs("\n", fp);
 	fflush(fp);
 }

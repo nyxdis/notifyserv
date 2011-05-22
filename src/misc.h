@@ -6,6 +6,8 @@
  */
 
 
+#include <glib.h>
+
 typedef enum {
 	NONE,
 	ERROR,
@@ -17,4 +19,4 @@ typedef enum {
 int server_connect(const char *host, unsigned short port);
 
 /* Log events to a logfile or stdout */
-void notify_log(loglevel level, const char *format, ...);
+void notify_log(loglevel level, const gchar *format, ...);

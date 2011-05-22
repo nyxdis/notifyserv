@@ -10,6 +10,8 @@ AM_INIT_AUTOMAKE([dist-bzip2 foreign 1.10])
 AC_PROG_CC
 
 # Checks for libraries.
+PKG_PROG_PKG_CONFIG([0.24])
+PKG_CHECK_MODULES([glib], [glib-2.0 >= 2.28])
 
 # Checks for header files.
 AC_CHECK_HEADERS([fcntl.h limits.h netdb.h netinet/in.h stdlib.h string.h sys/socket.h unistd.h])
