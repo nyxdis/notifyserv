@@ -7,7 +7,6 @@
 
 
 #include <errno.h>
-#include <stdarg.h>
 #include <sys/un.h>
 
 #include <glib.h>
@@ -22,9 +21,6 @@
 #endif
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
-#endif
-#ifdef HAVE_STRING_H
-#include <string.h>
 #endif
 #ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
