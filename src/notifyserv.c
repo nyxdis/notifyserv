@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* Connect to IRC, retry until successful */
-	while(irc_connect() < 0) {
+	while (!irc_connect(NULL)) {
 		if(errno > 0)
 			g_warning("Failed to connect to IRC server: %s",
 					strerror(errno));
@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
 		}
 
 		if(!notify_info.irc_connected && difftime(time(NULL),notify_info.irc_last_conn_try) > 60) {
-			if(irc_connect() < 0) {
+			if (!irc_connect(NULL)) {
 				if(errno > 0)
 					g_warning("Failed to connect to"
 							" IRC server: %s",

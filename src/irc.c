@@ -6,22 +6,58 @@
  */
 
 
-#include <errno.h>
+#include <string.h>
+
+#include <glib.h>
+#include <gio/gio.h>
+
 #include "notifyserv.h"
 
-#ifdef HAVE_NETDB_H
+/*
 #include <netdb.h>
-#endif
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
+*/
+
+static void irc_write(const gchar *fmt, ...);
+static void irc_connect_cb(GSocketClient *client, GAsyncResult *result,
+		G_GNUC_UNUSED gpointer user_data);
+static void irc_schedule_reconnect(void);
+static void irc_source_attach(void);
+static gboolean irc_callback(G_GNUC_UNUSED GSocket *socket,
+		G_GNUC_UNUSED GIOCondition condition,
+		G_GNUC_UNUSED gpointer user_data);
+
+static struct {
+	GSocketConnection *connection;
+	GOutputStream *ostream;
+	GInputStream *istream;
+	GSource *callback_source;
+	guint reconnect_source;
+} irc;
 
 /* Send data to the IRC socket after terminating it with \r\n */
-static void irc_write(const char *string)
+static void irc_write(const gchar *fmt, ...)
 {
-	char tmp[IRC_MAX];
-	snprintf(tmp,IRC_MAX,"%s\r\n",string);
-	if(write(notify_info.irc_sockfd,tmp,strlen(tmp)) < 0) return;
+	GError *error = NULL;
+	gchar *tmp1, *tmp2;
+	va_list ap;
+
+	if (!irc.ostream)
+		return;
+
+	va_start(ap, fmt);
+	tmp1 = g_strdup_vprintf(fmt, ap);
+	va_end(ap);
+
+	tmp2 = g_strconcat(tmp1, "\n", NULL);
+	g_free(tmp1);
+
+	if (g_output_stream_write(irc.ostream, tmp2, strlen(tmp2),
+				NULL, &error) < 0) {
+		g_warning("Failed to write: %s", error->message);
+		g_error_free(error);
+	}
+
+	g_free(tmp2);
 }
 
 /* Prepend 'PRIVMSG chan :' and send that to irc_write */
@@ -33,21 +69,47 @@ void irc_say(const char *channel, const char *string)
 }
 
 /* Connect to the IRC server */
-int irc_connect(void)
+gboolean irc_connect(G_GNUC_UNUSED gpointer data)
 {
-	char tmp[IRC_MAX];
+	GSocketClient *client;
 
-	notify_info.irc_sockfd = server_connect(prefs.irc_server,prefs.irc_port);
-	if(notify_info.irc_sockfd < 0)
-		return -1;
+	client = g_socket_client_new();
+	g_socket_client_connect_to_host_async(client, prefs.irc_server, 6667,
+			NULL, (GAsyncReadyCallback) irc_connect_cb, NULL);
+	g_object_unref(client);
+
+	return FALSE;
+}
+
+static void irc_connect_cb(GSocketClient *client, GAsyncResult *result,
+		G_GNUC_UNUSED gpointer user_data)
+{
+	GError *error = NULL;
+
+	if (irc.reconnect_source > 0) {
+		g_source_remove(irc.reconnect_source);
+		irc.reconnect_source = 0;
+	}
+
+	irc.connection = g_socket_client_connect_finish(client, result, &error);
+	if (irc.connection) {
+		g_warning("Failed to connect to IRC: %s", error->message);
+		g_error_free(error);
+		irc_schedule_reconnect();
+		return;
+	}
+
 	g_message("Connected to IRC server");
 
-	snprintf(tmp,IRC_MAX,"USER %s ns ns :" PACKAGE_STRING,prefs.irc_ident);
-	irc_write(tmp);
-	snprintf(tmp,IRC_MAX,"NICK %s",prefs.irc_nick);
-	irc_write(tmp);
+	irc.ostream = g_io_stream_get_output_stream(
+			G_IO_STREAM(irc.connection));
+	irc.istream = g_io_stream_get_input_stream(
+			G_IO_STREAM(irc.connection));
 
-	return 0;
+	irc_write("USER %s 0 * :" PACKAGE_STRING, prefs.irc_ident);
+	irc_write("NICK %s", prefs.irc_nick);
+
+	irc_source_attach();
 }
 
 /* Parse IRC input */
@@ -151,4 +213,45 @@ void irc_parse(const char *line)
 		}
 		free(channel);
 	}
+}
+
+static void irc_schedule_reconnect(void)
+{
+	irc.reconnect_source = g_timeout_add_seconds(30, irc_connect, NULL);
+}
+
+static void irc_source_attach(void)
+{
+	GSocket *socket = g_socket_connection_get_socket(irc.connection);
+	irc.callback_source = g_socket_create_source(socket, G_IO_IN, NULL);
+	g_source_set_callback(irc.callback_source, (GSourceFunc) irc_callback,
+			NULL, NULL);
+	g_source_attach(irc.callback_source, NULL);
+}
+
+static gboolean irc_callback(G_GNUC_UNUSED GSocket *socket,
+		G_GNUC_UNUSED GIOCondition condition,
+		G_GNUC_UNUSED gpointer user_data)
+{
+	GError *error = NULL;
+	gchar *buf, **lines;
+	gssize len;
+
+	buf = g_malloc0(IRC_MAX);
+	len = g_input_stream_read(irc.istream, buf, IRC_MAX, NULL, &error);
+	if (len < 0) {
+		g_free(buf);
+		g_warning("Failed to read from IRC: %s", error->message);
+		g_error_free(error);
+		irc_schedule_reconnect();
+		return FALSE;
+	} else if (len > 0) {
+		lines = g_strsplit(buf, "\r\n", 0);
+		for (guint i = 0; lines[i] != NULL; i++)
+			irc_parse(lines[i]);
+		g_strfreev(lines);
+	}
+	g_free(buf);
+
+	return TRUE;
 }

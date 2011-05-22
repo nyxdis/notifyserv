@@ -10,7 +10,7 @@
 #define IRC_MAX 512
 
 /* Connect to IRC */
-int irc_connect(void);
+gboolean irc_connect(G_GNUC_UNUSED gpointer data);
 
 /* Parse input read on the IRC sockfd */
 void irc_parse(const char *string);
