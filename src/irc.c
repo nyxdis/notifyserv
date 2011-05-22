@@ -13,10 +13,6 @@
 
 #include "notifyserv.h"
 
-/*
-#include <netdb.h>
-*/
-
 static void irc_write(const gchar *fmt, ...);
 static void irc_connect_cb(GSocketClient *client, GAsyncResult *result,
 		G_GNUC_UNUSED gpointer user_data);
