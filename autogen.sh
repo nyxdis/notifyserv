@@ -1,6 +1,6 @@
+#!/bin/sh
+
 source_dir="$(dirname $0)"
-master_dir="`pwd`"
-export GIT_DIR=${source_dir}/.git
 
 if [ ! -e ${source_dir}/configure.ac ]; then
 	echo "This script has to be placed in the top-level source directory"
@@ -12,8 +12,9 @@ if [ -e Makefile ]; then
 	make -s distclean
 fi
 
+pushd ${source_dir} >/dev/null
 echo "Running aclocal"
-cd ${source_dir} && aclocal || exit 1
+aclocal || exit 1
 echo "Running autoconf"
 autoconf || exit 1
 echo "Running autoheader"
@@ -21,4 +22,5 @@ autoheader || exit 1
 echo "Running automake --add-missing --copy --foreign"
 automake --add-missing --copy --foreign || exit 1
 echo "Running ${source_dir}/configure $@"
-cd ${master_dir} && ${source_dir}/configure "$@"
+popd >/dev/null
+[ -n "${NOCONFIGURE}" ] && ${source_dir}/configure "$@"
