@@ -25,8 +25,17 @@
 
 static void print_usage(const char *exec, int retval);
 static void print_version(void);
-static void sighandler(int sig);
 static int daemonise(void);
+
+static void ns_sighandler(int sig);
+static void ns_open_signal_pipe(void);
+static void ns_close_signal_pipe(void);
+static gboolean ns_signal_parse(GIOChannel *source, GIOCondition condition,
+		gpointer data);
+static gint signal_pipe[2] = { -1, -1 };
+static guint signal_source = 0;
+
+static GMainLoop *loop;
 
 int main(int argc, char *argv[])
 {
@@ -42,24 +51,25 @@ int main(int argc, char *argv[])
 	g_log_set_default_handler(notify_log, NULL);
 
 	/* Set defaults */
-	prefs.bind_address = strdup("localhost");
+	prefs.bind_address = g_strdup("localhost");
 	prefs.bind_port = 8675;
 	prefs.fork = true;
-	prefs.irc_ident = strdup(PACKAGE);
-	prefs.irc_nick = strdup(PACKAGE_NAME);
+	prefs.irc_ident = g_strdup(PACKAGE);
+	prefs.irc_nick = g_strdup(PACKAGE_NAME);
 	prefs.irc_port = 6667;
 	prefs.sock_path = NULL;
 	notify_info.listen_unix_sockfd = -1;
 	notify_info.listen_tcp_sockfd = -1;
 
 	/* Signal handler */
-	sa.sa_handler = sighandler;
+	ns_open_signal_pipe();
+	sa.sa_handler = ns_sighandler;
 	sigfillset(&sa.sa_mask);
 	sa.sa_flags = SA_RESTART;
-	sigaction(SIGINT,&sa,NULL);
-	sigaction(SIGTERM,&sa,NULL);
-	sigaction(SIGQUIT,&sa,NULL);
-	sigaction(SIGHUP,&sa,NULL);
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGTERM, &sa, NULL);
+	sigaction(SIGQUIT, &sa, NULL);
+	sigaction(SIGHUP, &sa, NULL);
 
 	/* Parse command-line options */
 	while((c = getopt(argc,argv,"c:dfhi:l:n:p:s:u:vV")) != -1)
@@ -285,14 +295,61 @@ static void print_version(void)
 
 /* Signal handler function, called by sigaction for SIGINT, SIGTERM and SIGQUIT
  * This function is also called when SIGHUP is received, but doesn't actually
- * do anything in that case */
-static void sighandler(int sig)
+ * do anything in that case (yet) */
+static void ns_sighandler(int sig)
 {
 	if(sig == SIGHUP) {
 		g_message("Received signal %d, ignored.", sig);
 		return;
 	}
-	g_message("Received signal %d, exiting.", sig);
-	cleanup();
-	exit(EXIT_SUCCESS);
+	if (write(signal_pipe[1], &sig, 1) < 0) {
+		g_warning("Failed to write to signal pipe, reopening");
+		ns_close_signal_pipe();
+		ns_open_signal_pipe();
+	}
+}
+
+static void ns_open_signal_pipe(void)
+{
+	GIOChannel *channel;
+
+	if (pipe(signal_pipe) < 0) {
+		g_warning("Failed to open signal pipe");
+		return;
+	}
+
+	channel = g_io_channel_unix_new(signal_pipe[0]);
+	signal_source = g_io_add_watch(channel, G_IO_IN, ns_signal_parse,
+			NULL);
+	g_io_channel_unref(channel);
+}
+
+static void ns_close_signal_pipe(void)
+{
+	if (signal_pipe[0] > 0)
+		close(signal_pipe[0]);
+	if (signal_pipe[1] > 0)
+		close(signal_pipe[1]);
+	signal_pipe[0] = signal_pipe[1] = -1;
+}
+
+static gboolean ns_signal_parse(GIOChannel *source,
+		G_GNUC_UNUSED GIOCondition condition,
+		G_GNUC_UNUSED gpointer data)
+{
+	GError *error = NULL;
+	gchar *buf;
+
+	if (g_io_channel_read_line(source, &buf, NULL, NULL, &error)
+			== G_IO_STATUS_ERROR) {
+		g_warning("Failed to read from signal pipe: %s",
+				error->message);
+		ns_close_signal_pipe();
+		ns_open_signal_pipe();
+		return FALSE;
+	}
+
+	g_message("Received signal %s, exiting.", buf);
+	g_main_loop_quit(loop);
+	return TRUE;
 }
