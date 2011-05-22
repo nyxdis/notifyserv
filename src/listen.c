@@ -48,7 +48,7 @@ static int listen_unix(void)
 	if(listen(sockfd,5) < 0)
 		return -1;
 
-	notify_log(INFO,"Listening on Unix domain socket %s",prefs.sock_path);
+	g_message("Listening on Unix domain socket %s", prefs.sock_path);
 	return sockfd;
 }
 
@@ -65,7 +65,8 @@ static int listen_tcp(void)
 	sprintf(service,"%hu",prefs.bind_port);
 
 	if((ret = getaddrinfo(prefs.bind_address,service,&hints,&result)) != 0) {
-		notify_log(ERROR,"[Listener] Failed to get address information: %s",gai_strerror(ret));
+		g_critical("[Listener] Failed to get address information: %s",
+				gai_strerror(ret));
 		return -1;
 	}
 	if(!result) return -1;
@@ -87,7 +88,7 @@ static int listen_tcp(void)
 	if(listen(sockfd,5) < 0)
 		return -1;
 
-	notify_log(INFO,"Listening on %s:%hu",prefs.bind_address,prefs.bind_port);
+	g_message("Listening on %s:%hu", prefs.bind_address, prefs.bind_port);
 
 	return sockfd;
 }
@@ -105,7 +106,8 @@ int start_listener(void)
 		free(prefs.bind_address);
 	}
 	if(!prefs.sock_path && !prefs.bind_address) {
-		notify_log(ERROR,"No Unix domain socket path defined and TCP sockets disabled.");
+		g_critical("No Unix domain socket path defined and TCP sockets"
+				" disabled.");
 		return -1;
 	}
 	return 0;
@@ -125,17 +127,20 @@ void listen_forward(char *input)
 	do {
 		if(line[0] != '#') {
 			if(line[0] != '*')
-				notify_log(INFO,"Received deprecated input format, the first word should be the channel or *");
+				g_message("Received deprecated input format, "
+						"the first word should be the "
+						"channel or *");
 			for(i=0;prefs.irc_chans[i];i++)
 				irc_say(prefs.irc_chans[i],line);
-			notify_log(INFO,"Forwarded data to IRC: %s",line);
+			g_message("Forwarded data to IRC: %s", line);
 		} else {
 			i = strcspn(line," ");
 			channel = malloc(i+1);
 			strncpy(channel,line,i);
 			channel[i] = '\0';
 			irc_say(channel,&line[i]);
-			notify_log(INFO,"Forwarded data to IRC channel %s:%s",channel,&line[i]);
+			g_message("Forwarded data to IRC channel %s:%s",
+					channel, &line[i]);
 		}
 	} while((line = strtok_r(NULL,"\n",&saveptr)));
 }

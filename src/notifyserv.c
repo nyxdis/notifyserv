@@ -39,6 +39,8 @@ int main(int argc, char *argv[])
 
 	notify_info.argv = argv;
 
+	g_log_set_default_handler(notify_log, NULL);
+
 	/* Set defaults */
 	prefs.bind_address = strdup("localhost");
 	prefs.bind_port = 8675;
@@ -136,12 +138,13 @@ int main(int argc, char *argv[])
 
 	prefs.irc_chans[chanc] = NULL;
 
-	notify_log(INFO,PACKAGE_STRING "started");
+	g_message(PACKAGE_STRING "started");
 
 	/* Fire up listening sockets */
 	if(start_listener() < 0) {
 		if(errno > 0)
-			notify_log(ERROR,"Failed to start listener: %s",strerror(errno));
+			g_critical("Failed to start listener: %s",
+					strerror(errno));
 		free(prefs.irc_server);
 		free(prefs.bind_address);
 		cleanup();
@@ -151,8 +154,10 @@ int main(int argc, char *argv[])
 	/* Connect to IRC, retry until successful */
 	while(irc_connect() < 0) {
 		if(errno > 0)
-			notify_log(ERROR,"Failed to connect to IRC server: %s",strerror(errno));
-		notify_log(INFO,"Sleeping for 60 seconds before retrying IRC connection");
+			g_warning("Failed to connect to IRC server: %s",
+					strerror(errno));
+		g_message("Sleeping for 60 seconds before "
+				"retrying IRC connection");
 		sleep(60);
 	}
 	notify_info.irc_connected = true;
@@ -181,19 +186,21 @@ int main(int argc, char *argv[])
 					pos = strcspn(buf,"\n");
 				}
 			} else {
-				notify_log(INFO,"Lost IRC connection, reconnecting.");
+				g_message("Lost IRC connection, reconnecting.");
 				notify_info.irc_connected = false;
 			}
 		}
 		if(fds[0].revents & POLLHUP) {
-			notify_log(INFO,"Lost IRC connection, reconnecting.");
+			g_message("Lost IRC connection, reconnecting.");
 			notify_info.irc_connected = false;
 		}
 
 		if(!notify_info.irc_connected && difftime(time(NULL),notify_info.irc_last_conn_try) > 60) {
 			if(irc_connect() < 0) {
 				if(errno > 0)
-					notify_log(ERROR,"Failed to connect to IRC server: %s",strerror(errno));
+					g_warning("Failed to connect to"
+							" IRC server: %s",
+							strerror(errno));
 				notify_info.irc_last_conn_try = time(NULL);
 			} else
 				notify_info.irc_connected = true;
@@ -208,7 +215,8 @@ int main(int argc, char *argv[])
 				if(read(client,buf,MAX_BUF) > 0)
 					listen_forward(buf);
 				else
-					notify_log(ERROR,"Read failed: %s",strerror(errno));
+					g_warning("Read failed: %s",
+							strerror(errno));
 				close(client);
 			}
 		}
@@ -281,10 +289,10 @@ static void print_version(void)
 static void sighandler(int sig)
 {
 	if(sig == SIGHUP) {
-		notify_log(INFO,"Received signal %d, ignored.");
+		g_message("Received signal %d, ignored.", sig);
 		return;
 	}
-	notify_log(INFO,"Received signal %d, exiting.",sig);
+	g_message("Received signal %d, exiting.", sig);
 	cleanup();
 	exit(EXIT_SUCCESS);
 }

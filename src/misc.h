@@ -19,4 +19,5 @@ typedef enum {
 int server_connect(const char *host, unsigned short port);
 
 /* Log events to a logfile or stdout */
-void notify_log(loglevel level, const gchar *format, ...);
+void notify_log(G_GNUC_UNUSED const gchar *log_domain, GLogLevelFlags log_level,
+		const gchar *message, G_GNUC_UNUSED gpointer user_data);

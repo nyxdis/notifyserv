@@ -46,7 +46,8 @@ int server_connect(const char *host, unsigned short port)
 	sprintf(service,"%hu",port);
 
 	if((ret = getaddrinfo(host,service,&hints,&result)) != 0) {
-		notify_log(ERROR,"[IRC] Failed to get address information: %s",gai_strerror(ret));
+		g_warning("[IRC] Failed to get address information: %s",
+				gai_strerror(ret));
 		freeaddrinfo(result);
 		return -1;
 	}
@@ -97,14 +98,14 @@ int server_connect(const char *host, unsigned short port)
 }
 
 /* Logging function */
-void notify_log(loglevel level, const gchar *format, ...)
+void notify_log(G_GNUC_UNUSED const gchar *log_domain, GLogLevelFlags log_level,
+		const gchar *message, G_GNUC_UNUSED gpointer user_data)
 {
 	GDateTime *datetime;
 	char *ts;
-	va_list ap;
 	FILE *fp;
 
-	if (level > prefs.verbosity)
+	if (log_level > prefs.verbosity)
 		return;
 
 	if (!prefs.fork)
@@ -118,10 +119,7 @@ void notify_log(loglevel level, const gchar *format, ...)
 	fputs(ts, fp);
 	g_free(ts);
 
-	va_start(ap, format);
-	vfprintf(fp, format, ap);
-	va_end(ap);
-
+	fputs(message, fp);
 	fputs("\n", fp);
 	fflush(fp);
 }
