@@ -21,6 +21,8 @@ echo "Running autoheader"
 autoheader || exit 1
 echo "Running automake --add-missing --copy --foreign"
 automake --add-missing --copy --foreign || exit 1
-echo "Running ${source_dir}/configure $@"
+if [ -z "${NOCONFIGURE}" ]; then
+	echo "Running ${source_dir}/configure $@"
+	${source_dir}/configure "$@"
+fi
 popd >/dev/null
-[ -n "${NOCONFIGURE}" ] && ${source_dir}/configure "$@"
