@@ -1,7 +1,7 @@
 /*
  * IRC notification system
  *
- * Copyright (c) 2008-2009, Christoph Mende <angelos@unkreativ.org>
+ * Copyright (c) 2008-2011, Christoph Mende <mende.christoph@gmail.com>
  * All rights reserved. Released under the 2-clause BSD license.
  */
 
@@ -270,7 +270,7 @@ static void print_usage(const char *exec, int retval)
 static void print_version(void)
 {
 	puts(PACKAGE_STRING "\n");
-	puts("Copyright (c) 2008-2009, Christoph Mende <angelos@unkreativ.org>");
+	puts("Copyright (c) 2008-2011, Christoph Mende <mende.christoph@gmail.com>");
 	puts("All rights reserved. Released under the 2-clause BSD license.");
 	exit(EXIT_SUCCESS);
 }
