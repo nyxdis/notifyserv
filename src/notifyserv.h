@@ -6,28 +6,9 @@
  */
 
 
-#include <stdio.h>
-#include "config.h"
-
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#ifdef HAVE_STDBOOL_H
-#include <stdbool.h>
-#endif
-
-#include "log.h"
-#include "irc.h"
-#include "listen.h"
-
-#define MAX_BUF 1024 /* socket read buffer */
-
 /* User-defined options */
 struct {
-	bool fork;
+	gboolean fork;
 	gchar *bind_address;
 	char **irc_chans;
 	char *irc_ident;

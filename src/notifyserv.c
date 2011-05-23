@@ -6,9 +6,18 @@
  */
 
 
-#include <string.h>
 #include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
+#include <glib.h>
+
+#include "config.h"
+#include "irc.h"
+#include "listen.h"
+#include "log.h"
 #include "notifyserv.h"
 
 static void print_usage(const char *exec, int retval);
@@ -37,7 +46,7 @@ int main(int argc, char *argv[])
 	/* Set defaults */
 	prefs.bind_address = g_strdup("localhost");
 	prefs.bind_port = 8675;
-	prefs.fork = true;
+	prefs.fork = TRUE;
 	prefs.irc_ident = g_strdup(PACKAGE);
 	prefs.irc_nick = g_strdup(PACKAGE_NAME);
 	prefs.irc_port = 6667;
@@ -70,7 +79,7 @@ int main(int argc, char *argv[])
 				prefs.bind_address = NULL;
 				break;
 			case 'f':
-				prefs.fork = false;
+				prefs.fork = FALSE;
 				break;
 			case 'h':
 				print_usage(argv[0],EXIT_SUCCESS);

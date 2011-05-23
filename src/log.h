@@ -6,8 +6,6 @@
  */
 
 
-#include <glib.h>
-
 void log_init(void);
 void notify_log(G_GNUC_UNUSED const gchar *log_domain, GLogLevelFlags log_level,
 		const gchar *message, G_GNUC_UNUSED gpointer user_data);

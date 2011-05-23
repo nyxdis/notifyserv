@@ -12,8 +12,9 @@
 #include <gio/gio.h>
 #include <gio/gunixsocketaddress.h>
 
-#include "notifyserv.h"
+#include "irc.h"
 #include "listen.h"
+#include "notifyserv.h"
 
 #define BUF_SIZE 1024
 

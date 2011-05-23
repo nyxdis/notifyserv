@@ -6,9 +6,6 @@
  */
 
 
-/* Max IRC line length */
-#define IRC_MAX 512
-
 /* Connect to IRC */
 gboolean irc_connect(G_GNUC_UNUSED gpointer data);
 

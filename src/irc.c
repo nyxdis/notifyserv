@@ -6,12 +6,18 @@
  */
 
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <glib.h>
 #include <gio/gio.h>
 
+#include "config.h"
+#include "irc.h"
 #include "notifyserv.h"
+
+#define IRC_MAX 512
 
 static void irc_write(const gchar *fmt, ...);
 static void irc_connect_cb(GSocketClient *client, GAsyncResult *result,
