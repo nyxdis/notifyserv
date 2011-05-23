@@ -19,7 +19,7 @@
 #include <stdbool.h>
 #endif
 
-#include "misc.h"
+#include "log.h"
 #include "irc.h"
 #include "listen.h"
 
