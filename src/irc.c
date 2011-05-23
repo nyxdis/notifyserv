@@ -15,12 +15,10 @@
 
 static void irc_write(const gchar *fmt, ...);
 static void irc_connect_cb(GSocketClient *client, GAsyncResult *result,
-		G_GNUC_UNUSED gpointer user_data);
+		gpointer user_data);
 static void irc_schedule_reconnect(void);
 static void irc_source_attach(void);
-static gboolean irc_callback(G_GNUC_UNUSED GSocket *socket,
-		G_GNUC_UNUSED GIOCondition condition,
-		G_GNUC_UNUSED gpointer user_data);
+static gboolean irc_callback(gpointer user_data);
 
 static struct {
 	GSocketConnection *connection;
@@ -225,9 +223,7 @@ static void irc_source_attach(void)
 	g_source_attach(irc.callback_source, NULL);
 }
 
-static gboolean irc_callback(G_GNUC_UNUSED GSocket *socket,
-		G_GNUC_UNUSED GIOCondition condition,
-		G_GNUC_UNUSED gpointer user_data)
+static gboolean irc_callback(G_GNUC_UNUSED gpointer user_data)
 {
 	GError *error = NULL;
 	gchar *buf, **lines;
