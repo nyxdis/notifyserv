@@ -6,8 +6,6 @@
  */
 
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include <glib.h>
@@ -126,7 +124,7 @@ static void irc_connect_cb(GSocketClient *client, GAsyncResult *result,
 /* Parse IRC input */
 static void irc_parse(const gchar *line)
 {
-	gchar tmp[IRC_MAX];
+	gchar *tmp;
 
 	if (strncmp(line, "ERROR :", 7) == 0) {
 		if (strstr(line, "Connection timed out")) {
@@ -139,31 +137,33 @@ static void irc_parse(const gchar *line)
 		return;
 	}
 
-	snprintf(tmp, IRC_MAX, "433 * %s :Nickname is already in use.\r",
+	tmp = g_strdup_printf("433 * %s :Nickname is already in use.",
 			prefs.irc_nick);
 	if (strstr(line, tmp)) {
 		g_critical("[IRC] Nickname is already in use.");
+		g_free(tmp);
 		notify_shutdown();
 		return;
 	}
+	g_free(tmp);
 
 	if (strncmp(line, "PING :", 6) == 0)
 	{
 		g_debug("[IRC] Sending PONG :%s", &line[6]);
-		snprintf(tmp, IRC_MAX, "PONG :%s", &line[6]);
-		irc_write(tmp);
+		irc_write("PONG :%s", &line[6]);
 	}
 
-	snprintf(tmp, IRC_MAX, "001 %s :Welcome to the", prefs.irc_nick);
+	tmp = g_strdup_printf("001 %s :", prefs.irc_nick);
 	if (strstr(line, tmp))
 	{
+		g_free(tmp);
 		g_message("[IRC] Connection complete.");
 		for (guint i = 0; prefs.irc_chans[i]; i++) {
 			g_message("[IRC] Joining %s.", prefs.irc_chans[i]);
-			snprintf(tmp, IRC_MAX, "JOIN %s", prefs.irc_chans[i]);
-			irc_write(tmp);
+			irc_write("JOIN %s", prefs.irc_chans[i]);
 		}
 	}
+	g_free(tmp);
 
 	if (strstr(line, "PRIVMSG #")) {
 		gchar **info;
@@ -178,17 +178,9 @@ static void irc_parse(const gchar *line)
 		g_strfreev(info);
 
 		/* These rely on channel being initialized */
-		snprintf(tmp, IRC_MAX, "KICK %s %s :", channel, prefs.irc_nick);
-		if (strstr(line, tmp)) {
-			g_message("[IRC] Kicked from %s, rejoining.", channel);
-			snprintf(tmp, IRC_MAX, "JOIN %s", channel);
-			irc_write(tmp);
-		}
-
 		if (g_ascii_strcasecmp(command, "ping") == 0) {
 			g_debug("[IRC] %s pinged me, sending pong.", nick);
-			snprintf(tmp, IRC_MAX, "%s: pong", nick);
-			irc_say(channel, tmp);
+			irc_say(channel, "%s: pong", nick);
 		}
 
 		if (g_ascii_strcasecmp(command, "version") == 0) {
