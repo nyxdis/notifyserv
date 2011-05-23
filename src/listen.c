@@ -49,7 +49,8 @@ gboolean start_listener(void)
 					prefs.sock_path, error->message);
 			g_error_free(error);
 		} else {
-			g_message("Listening on Unix domain socket %s", prefs.sock_path);
+			g_message("Listening on Unix domain socket %s",
+					prefs.sock_path);
 		}
 	}
 
@@ -70,7 +71,8 @@ gboolean start_listener(void)
 					prefs.bind_address, error->message);
 			g_error_free(error);
 		} else {
-			g_message("Listening on %s:%hu", prefs.bind_address, prefs.bind_port);
+			g_message("Listening on %s:%hu", prefs.bind_address,
+					prefs.bind_port);
 		}
 	}
 
@@ -127,8 +129,8 @@ static gboolean listen_forward(GSocketConnection *connection)
 
 static void listen_parse(const gchar *line)
 {
-	if(line[0] != '#') {
-		if(line[0] != '*')
+	if (line[0] != '#') {
+		if (line[0] != '*')
 			g_message("Received deprecated input format, the first"
 					" word should be the channel or *");
 

@@ -122,8 +122,8 @@ static void irc_parse(const gchar *line)
 	char *nick, *ident, *host;
 	int i;
 
-	if(strncmp(line,"ERROR :",7) == 0) {
-		if(strstr(line,"Connection timed out")) {
+	if (strncmp(line, "ERROR :", 7) == 0) {
+		if (strstr(line, "Connection timed out")) {
 			irc_schedule_reconnect();
 			return;
 		}
@@ -133,70 +133,71 @@ static void irc_parse(const gchar *line)
 		return;
 	}
 
-	snprintf(tmp,IRC_MAX,"433 * %s :Nickname is already in use.\r",prefs.irc_nick);
-	if(strstr(line,tmp)) {
+	snprintf(tmp, IRC_MAX, "433 * %s :Nickname is already in use.\r",
+			prefs.irc_nick);
+	if (strstr(line, tmp)) {
 		g_critical("[IRC] Nickname is already in use.");
 		notify_shutdown();
 		return;
 	}
 
-	if(strncmp(line,"PING :",6) == 0)
+	if (strncmp(line, "PING :", 6) == 0)
 	{
 		g_debug("[IRC] Sending PONG :%s", &line[6]);
-		snprintf(tmp,IRC_MAX,"PONG :%s",&line[6]);
+		snprintf(tmp, IRC_MAX, "PONG :%s", &line[6]);
 		irc_write(tmp);
 	}
 
-	snprintf(tmp,IRC_MAX,"001 %s :Welcome to the",prefs.irc_nick);
-	if(strstr(line,tmp))
+	snprintf(tmp, IRC_MAX, "001 %s :Welcome to the", prefs.irc_nick);
+	if (strstr(line, tmp))
 	{
 		g_message("[IRC] Connection complete.");
 		for(i=0;prefs.irc_chans[i];i++) {
 			g_message("[IRC] Joining %s.", prefs.irc_chans[i]);
-			snprintf(tmp,IRC_MAX,"JOIN %s",prefs.irc_chans[i]);
+			snprintf(tmp, IRC_MAX, "JOIN %s", prefs.irc_chans[i]);
 			irc_write(tmp);
 		}
 	}
 
-	if(strstr(line,"#")) {
-		if((i = strcspn(strstr(line,"#")," ")) < 2)
+	if (strstr(line, "#")) {
+		if ((i = strcspn(strstr(line, "#"), " ")) < 2)
 			return;
-		if(!(channel = malloc(i+1))) return;
-		strncpy(channel,strstr(line,"#"),i);
+		if (!(channel = malloc(i+1))) return;
+		strncpy(channel, strstr(line, "#"), i);
 		channel[i] = '\0';
 
 		/* we only care about the nick here, not before */
-		nick = malloc(strcspn(line," ")+1);
-		strncpy(nick,&line[1],strcspn(line," "));
-		host = strdup(&nick[strcspn(nick,"@")+1]);
-		host[strcspn(host," ")] = 0;
-		nick[strcspn(nick,"@")] = 0;
-		ident = strdup(&nick[strcspn(nick,"!")+1]);
-		nick[strcspn(nick,"!")] = 0;
+		nick = malloc(strcspn(line, " ")+1);
+		strncpy(nick, &line[1], strcspn(line, " "));
+		host = strdup(&nick[strcspn(nick, "@")+1]);
+		host[strcspn(host, " ")] = 0;
+		nick[strcspn(nick, "@")] = 0;
+		ident = strdup(&nick[strcspn(nick, "!")+1]);
+		nick[strcspn(nick, "!")] = 0;
 
 		/* These rely on channel being initialized */
-		snprintf(tmp,IRC_MAX,"KICK %s %s :",channel,prefs.irc_nick);
-		if(strstr(line,tmp)) {
+		snprintf(tmp, IRC_MAX, "KICK %s %s :", channel, prefs.irc_nick);
+		if (strstr(line, tmp)) {
 			g_message("[IRC] Kicked from %s, rejoining.", channel);
-			snprintf(tmp,IRC_MAX,"JOIN %s",channel);
+			snprintf(tmp, IRC_MAX, "JOIN %s", channel);
 			irc_write(tmp);
 		}
 
-		snprintf(tmp,IRC_MAX,"PRIVMSG %s :!ping\r",channel);
-		if(strstr(line,tmp)) {
+		snprintf(tmp, IRC_MAX, "PRIVMSG %s :!ping\r", channel);
+		if (strstr(line, tmp)) {
 			g_debug("[IRC] %s pinged me, sending pong.", nick);
-			snprintf(tmp,IRC_MAX,"%s: pong",nick);
-			irc_say(channel,tmp);
+			snprintf(tmp, IRC_MAX, "%s: pong", nick);
+			irc_say(channel, tmp);
 		}
 
-		snprintf(tmp,IRC_MAX,"PRIVMSG %s :!version\r",channel);
-		if(strstr(line,tmp)) {
+		snprintf(tmp, IRC_MAX, "PRIVMSG %s :!version\r", channel);
+		if (strstr(line, tmp)) {
 			g_debug("[IRC] %s asked for my version.", nick);
-			irc_say(channel,"This is " PACKAGE_STRING);
+			irc_say(channel, "This is " PACKAGE_STRING);
 		}
 
-		snprintf(tmp,IRC_MAX,"PRIVMSG %s :!die\r",channel);
-		if(strstr(line,tmp)) {
+		snprintf(tmp, IRC_MAX, "PRIVMSG %s :!die\r", channel);
+		if (strstr(line, tmp)) {
 			g_message("Dying as requested by %s (%s@%s) on IRC.",
 					nick, ident, host);
 			irc_write("QUIT :Dying");
@@ -205,13 +206,13 @@ static void irc_parse(const gchar *line)
 			return;
 		}
 
-		snprintf(tmp,IRC_MAX,"PRIVMSG %s :!reboot\r",channel);
-		if(strstr(line,tmp)) {
+		snprintf(tmp, IRC_MAX, "PRIVMSG %s :!reboot\r", channel);
+		if (strstr(line, tmp)) {
 			free(channel);
 			g_message("Rebooting as requested by %s (%s@%s)"
 					" on IRC.", nick, ident, host);
 			notify_shutdown();
-			execv(notify_info.argv[0],notify_info.argv);
+			execv(notify_info.argv[0], notify_info.argv);
 		}
 		free(channel);
 	}
