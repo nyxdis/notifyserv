@@ -56,11 +56,21 @@ gboolean start_listener(void)
 
 	if (prefs.bind_address) {
 		GError *error = NULL;
-		GInetAddress *address;
+		GList *addresses;
+		GResolver *resolver;
 		GSocketAddress *saddress;
 
-		address = g_inet_address_new_from_string(prefs.bind_address);
-		saddress = g_inet_socket_address_new(address, prefs.bind_port);
+		resolver = g_resolver_get_default();
+		addresses = g_resolver_lookup_by_name(resolver,
+				prefs.bind_address, NULL, &error);
+		if (!addresses) {
+			g_warning("Failed to resolve bind address: %s",
+					error->message);
+			g_error_free(error);
+			return FALSE;
+		}
+		saddress = g_inet_socket_address_new(addresses->data, prefs.bind_port);
+		g_resolver_free_addresses(addresses);
 
 		if (!g_socket_listener_add_address(
 					G_SOCKET_LISTENER(listen.service),
