@@ -21,12 +21,10 @@
 static gboolean listen_accept(GSocketService *service,
 		GSocketConnection *connection, GObject *src_object,
 		gpointer user_data);
-static gboolean listen_forward(GSocketConnection *connection);
 static void listen_parse(const gchar *line);
 
 static struct {
 	GSocketService *service;
-	GSource *callback_source;
 } listen;
 
 /* Start specified listening sockets */
@@ -103,16 +101,6 @@ static gboolean listen_accept(G_GNUC_UNUSED GSocketService *service,
 		GSocketConnection *connection,
 		G_GNUC_UNUSED GObject *src_object,
 		G_GNUC_UNUSED gpointer user_data)
-{
-	GSocket *socket = g_socket_connection_get_socket(connection);
-	listen.callback_source = g_socket_create_source(socket, G_IO_IN, NULL);
-	g_source_set_callback(listen.callback_source,
-			(GSourceFunc) listen_forward, connection, NULL);
-	g_source_attach(listen.callback_source, NULL);
-	return TRUE;
-}
-
-static gboolean listen_forward(GSocketConnection *connection)
 {
 	GError *error = NULL;
 	GInputStream *istream;
