@@ -20,32 +20,29 @@ void notify_log(G_GNUC_UNUSED const gchar *log_domain, GLogLevelFlags log_level,
 {
 	GDateTime *datetime;
 	char *ts;
-	FILE *fp;
 
 	if (log_level > prefs.verbosity)
 		return;
 
-	if (!prefs.fork || !log_fp)
-		fp = stdout;
-	else
-		fp = log_fp;
-
-
 	datetime = g_date_time_new_now_local();
 	ts = g_date_time_format(datetime, "%Y-%m-%d %H:%M:%S  ");
-	fputs(ts, fp);
+	fputs(ts, log_fp);
 	g_free(ts);
 
-	fputs(message, fp);
-	fputs("\n", fp);
-	fflush(fp);
+	fputs(message, log_fp);
+	fputs("\n", log_fp);
+	fflush(log_fp);
 }
 
 void log_init(void)
 {
-	log_fp = fopen("notifyserv.log", "a");
-	if (!log_fp)
-		g_critical("Unable to open notifyserv.log for logging");
+	if (prefs.fork) {
+		log_fp = fopen("notifyserv.log", "a");
+		if (!log_fp)
+			g_critical("Unable to open notifyserv.log for logging");
+	} else {
+		log_fp = stdout;
+	}
 }
 
 void log_cleanup(void)
