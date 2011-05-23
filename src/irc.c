@@ -63,12 +63,20 @@ static void irc_write(const gchar *fmt, ...)
 }
 
 /* Prepend 'PRIVMSG chan :' and send that to irc_write */
-void irc_say(const gchar *channel, const gchar *string)
+void irc_say(const gchar *channel, const gchar *fmt, ...)
 {
-	if (irc.ostream)
-		irc_write("PRIVMSG %s :%s", channel, string);
-	else
+	if (irc.ostream) {
+		va_list ap;
+		gchar *tmp;
+
+		va_start(ap, fmt);
+		tmp = g_strdup_vprintf(fmt, ap);
+		va_end(ap);
+
+		irc_write("PRIVMSG %s :%s", channel, tmp);
+	} else {
 		g_warning("Cannot write to IRC: not connected");
+	}
 }
 
 /* Connect to the IRC server */

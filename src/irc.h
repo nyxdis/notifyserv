@@ -10,4 +10,4 @@
 gboolean irc_connect(G_GNUC_UNUSED gpointer data);
 
 /* Send text to an IRC channel */
-void irc_say(const gchar *channel, const gchar *string);
+void irc_say(const gchar *channel, const gchar *fmt, ...);
