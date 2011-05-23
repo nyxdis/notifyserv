@@ -42,13 +42,8 @@ struct {
 
 /* Internal data */
 struct {
-	int irc_sockfd;
-	int listen_unix_sockfd;
-	int listen_tcp_sockfd;
 	FILE *log_fp;
 	char **argv;
-	time_t irc_last_conn_try;
-	bool irc_connected;
 } notify_info;
 
 /* clean up sockets */

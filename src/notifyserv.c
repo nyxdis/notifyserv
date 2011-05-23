@@ -42,8 +42,6 @@ int main(int argc, char *argv[])
 	prefs.irc_nick = g_strdup(PACKAGE_NAME);
 	prefs.irc_port = 6667;
 	prefs.sock_path = NULL;
-	notify_info.listen_unix_sockfd = -1;
-	notify_info.listen_tcp_sockfd = -1;
 
 	/* Signal handler */
 	ns_open_signal_pipe();
@@ -154,7 +152,6 @@ int main(int argc, char *argv[])
 				"retrying IRC connection");
 		sleep(60);
 	}
-	notify_info.irc_connected = true;
 
 	g_main_loop_run(loop);
 
@@ -178,11 +175,6 @@ static int daemonise(void)
 /* Cleanup handler, frees still used data */
 void cleanup(void)
 {
-	if(notify_info.irc_sockfd > 0) close(notify_info.irc_sockfd);
-	if(notify_info.listen_tcp_sockfd > 0)
-		close(notify_info.listen_tcp_sockfd);
-	if(notify_info.listen_unix_sockfd > 0)
-		close(notify_info.listen_unix_sockfd);
 	free(prefs.irc_ident);
 	free(prefs.irc_nick);
 	free(prefs.irc_server);

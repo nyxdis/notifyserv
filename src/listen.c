@@ -106,10 +106,6 @@ static gboolean listen_forward(GSocketConnection *connection)
 	gchar *buf, **lines;
 	gssize len;
 
-	/* We cannot forward data when we're not connected to IRC */
-	if(notify_info.irc_connected == false)
-		return FALSE;
-
 	istream = g_io_stream_get_input_stream(G_IO_STREAM(connection));
 	buf = g_malloc0(BUF_SIZE);
 	len = g_input_stream_read(istream, buf, BUF_SIZE, NULL, &error);

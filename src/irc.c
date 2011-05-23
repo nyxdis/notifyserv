@@ -58,7 +58,10 @@ static void irc_write(const gchar *fmt, ...)
 /* Prepend 'PRIVMSG chan :' and send that to irc_write */
 void irc_say(const gchar *channel, const gchar *string)
 {
-	irc_write("PRIVMSG %s :%s", channel, string);
+	if (irc.ostream)
+		irc_write("PRIVMSG %s :%s", channel, string);
+	else
+		g_warning("Cannot write to IRC: not connected");
 }
 
 /* Connect to the IRC server */
@@ -114,8 +117,7 @@ static void irc_parse(const gchar *line)
 
 	if(strncmp(line,"ERROR :",7) == 0) {
 		if(strstr(line,"Connection timed out")) {
-			notify_info.irc_connected = 0;
-			close(notify_info.irc_sockfd);
+			irc_schedule_reconnect();
 			return;
 		}
 
