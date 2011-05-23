@@ -6,22 +6,10 @@
  */
 
 
-#include <errno.h>
-#include <limits.h>
-#include <poll.h>
-#include <signal.h>
-#include <time.h>
-#include "notifyserv.h"
-
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-#ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
+#include <errno.h>
+
+#include "notifyserv.h"
 
 static void print_usage(const char *exec, int retval);
 static void print_version(void);
@@ -39,12 +27,8 @@ static GMainLoop *loop;
 
 int main(int argc, char *argv[])
 {
-	int c, chanc = 0, client, pos = 0;
-	socklen_t len;
-	struct pollfd fds[3];
+	int c, chanc = 0, pos = 0;
 	struct sigaction sa;
-	struct sockaddr cli_addr;
-	char buf[MAX_BUF+1];
 
 	notify_info.argv = argv;
 
@@ -172,65 +156,9 @@ int main(int argc, char *argv[])
 	}
 	notify_info.irc_connected = true;
 
-	fds[0].fd = notify_info.irc_sockfd;
-	fds[1].fd = notify_info.listen_tcp_sockfd;
-	fds[2].fd = notify_info.listen_unix_sockfd;
-	fds[0].events = fds[1].events = fds[2].events = POLLIN;
+	g_main_loop_run(loop);
 
-	for(;;)
-	{
-		poll(fds,3,1000);
-
-		/* Data available on the IRC socket */
-		if(fds[0].revents & POLLIN) {
-			memset(buf,0,MAX_BUF+1);
-			if(read(fds[0].fd,&buf[pos],MAX_BUF-pos) > 0) {
-				char line[MAX_BUF];
-				pos = strcspn(buf,"\n");
-
-				while(strstr(buf,"\n")) {
-					memcpy(line,buf,pos);
-					line[pos] = 0;
-					irc_parse(line);
-					memmove(buf,&buf[pos+1],MAX_BUF-pos);
-					pos = strcspn(buf,"\n");
-				}
-			} else {
-				g_message("Lost IRC connection, reconnecting.");
-				notify_info.irc_connected = false;
-			}
-		}
-		if(fds[0].revents & POLLHUP) {
-			g_message("Lost IRC connection, reconnecting.");
-			notify_info.irc_connected = false;
-		}
-
-		if(!notify_info.irc_connected && difftime(time(NULL),notify_info.irc_last_conn_try) > 60) {
-			if (!irc_connect(NULL)) {
-				if(errno > 0)
-					g_warning("Failed to connect to"
-							" IRC server: %s",
-							strerror(errno));
-				notify_info.irc_last_conn_try = time(NULL);
-			} else
-				notify_info.irc_connected = true;
-		}
-
-		for(c=1;c<3;c++) {
-			/* Data available on the listening sockets */
-			if(fds[c].revents & POLLIN) {
-				len = sizeof cli_addr;
-				client = accept(fds[c].fd,&cli_addr,&len);
-				memset(buf,0,MAX_BUF+1);
-				if(read(client,buf,MAX_BUF) > 0)
-					listen_forward(buf);
-				else
-					g_warning("Read failed: %s",
-							strerror(errno));
-				close(client);
-			}
-		}
-	}
+	cleanup();
 }
 
 /* fork() wrapper */
