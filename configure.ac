@@ -25,7 +25,7 @@ AC_TYPE_PID_T
 # Checks for library functions.
 AC_FUNC_FORK
 AC_FUNC_MALLOC
-AC_CHECK_FUNCS([strcspn strdup strerror strstr])
+AC_CHECK_FUNCS([strcspn strdup strstr])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

@@ -6,10 +6,7 @@
  */
 
 
-#include <errno.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 
 #include <glib.h>
@@ -21,7 +18,7 @@
 #include "notifyserv.h"
 #include "preferences.h"
 
-static int daemonise(void);
+static void daemonize(void);
 static void cleanup(void);
 
 static void ns_sighandler(int sig);
@@ -47,30 +44,19 @@ int main(int argc, char *argv[])
 	log_init();
 
 	/* Fork when wanted */
-	if(prefs.fork) daemonise();
+	if (prefs.fork)
+		daemonize();
 
 	g_message(PACKAGE_STRING "started");
 
 	/* Fire up listening sockets */
-	if(start_listener() < 0) {
-		if(errno > 0)
-			g_critical("Failed to start listener: %s",
-					strerror(errno));
-		free(prefs.irc_server);
-		free(prefs.bind_address);
+	if (!start_listener()) {
 		cleanup();
 		exit(EXIT_FAILURE);
 	}
 
-	/* Connect to IRC, retry until successful */
-	while (!irc_connect(NULL)) {
-		if(errno > 0)
-			g_warning("Failed to connect to IRC server: %s",
-					strerror(errno));
-		g_message("Sleeping for 60 seconds before "
-				"retrying IRC connection");
-		sleep(60);
-	}
+	/* Connect to IRC */
+	irc_connect(NULL);
 
 	/* Signal handler */
 	ns_open_signal_pipe();
@@ -88,17 +74,15 @@ int main(int argc, char *argv[])
 }
 
 /* fork() wrapper */
-static int daemonise(void)
+static void daemonize(void)
 {
-	pid_t pid;
+	pid_t pid = fork();
 
-	if((pid = fork()) < 0) {
-		fputs("Could not fork process.",stderr);
-		return -1;
-	} else if(pid) {
+	if (pid < 0) {
+		g_critical("Could not fork process:");
+	} else if (pid) {
 		exit(EXIT_SUCCESS);
 	}
-	return 0;
 }
 
 /* shut down the main loop */
@@ -110,11 +94,12 @@ void notify_shutdown(void)
 /* Cleanup handler, frees still used data */
 void cleanup(void)
 {
-	free(prefs.irc_ident);
-	free(prefs.irc_nick);
-	free(prefs.irc_server);
-	if(prefs.sock_path) unlink(prefs.sock_path);
-	free(prefs.sock_path);
+	g_free(prefs.irc_ident);
+	g_free(prefs.irc_nick);
+	g_free(prefs.irc_server);
+	if (prefs.sock_path)
+		unlink(prefs.sock_path);
+	g_free(prefs.sock_path);
 }
 
 /* Signal handler function, called by sigaction for SIGINT, SIGTERM and SIGQUIT
@@ -122,7 +107,7 @@ void cleanup(void)
  * do anything in that case (yet) */
 static void ns_sighandler(int sig)
 {
-	if(sig == SIGHUP) {
+	if (sig == SIGHUP) {
 		g_message("Received signal %d, ignored.", sig);
 		return;
 	}
