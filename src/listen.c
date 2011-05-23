@@ -127,6 +127,8 @@ static gboolean listen_accept(G_GNUC_UNUSED GSocketService *service,
 
 static void listen_parse(const gchar *line)
 {
+	line = g_strchomp(line);
+
 	if (line[0] != '#') {
 		if (line[0] != '*')
 			g_message("Received deprecated input format, the first"
