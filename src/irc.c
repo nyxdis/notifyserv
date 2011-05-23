@@ -16,6 +16,7 @@
 #include "config.h"
 #include "irc.h"
 #include "notifyserv.h"
+#include "preferences.h"
 
 #define IRC_MAX 512
 

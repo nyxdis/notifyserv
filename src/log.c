@@ -10,7 +10,7 @@
 
 #include <glib.h>
 
-#include "notifyserv.h"
+#include "preferences.h"
 
 static FILE *log_fp;
 

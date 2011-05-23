@@ -14,7 +14,7 @@
 
 #include "irc.h"
 #include "listen.h"
-#include "notifyserv.h"
+#include "preferences.h"
 
 #define BUF_SIZE 1024
 

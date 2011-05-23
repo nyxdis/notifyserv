@@ -4,7 +4,8 @@ dist_man_MANS = notifyserv.1
 notifyserv_SOURCES =	src/notifyserv.c src/notifyserv.h \
 			src/irc.c src/irc.h \
 			src/listen.c src/listen.h \
-			src/log.c src/log.h
+			src/log.c src/log.h \
+			src/preferences.c src/preferences.h
 
 notifyserv_LDADD =	$(glib_LIBS) \
 			$(gio_LIBS) \
