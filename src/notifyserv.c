@@ -116,6 +116,7 @@ static void ns_sighandler(gint sig)
 		g_message("Received signal %d, ignored.", sig);
 		return;
 	}
+
 	if (write(signal_pipe[1], &sig, 1) < 0) {
 		g_warning("Failed to write to signal pipe, reopening");
 		ns_close_signal_pipe();
@@ -151,19 +152,17 @@ static gboolean ns_signal_parse(GIOChannel *source,
 		G_GNUC_UNUSED GIOCondition condition,
 		G_GNUC_UNUSED gpointer data)
 {
-	GError *error = NULL;
-	gchar *buf;
+	gint fd = g_io_channel_unix_get_fd(source);
+	gchar sig;
 
-	if (g_io_channel_read_line(source, &buf, NULL, NULL, &error)
-			== G_IO_STATUS_ERROR) {
-		g_warning("Failed to read from signal pipe: %s",
-				error->message);
+	if (read(fd, &sig, 1) < 0) {
+		g_warning("Failed to read from signal pipe.");
 		ns_close_signal_pipe();
 		ns_open_signal_pipe();
 		return FALSE;
 	}
 
-	g_message("Received signal %s, exiting.", buf);
+	g_message("Received signal %hhd, exiting.", sig);
 	notify_shutdown();
 	return TRUE;
 }
