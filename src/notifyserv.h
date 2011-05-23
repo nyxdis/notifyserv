@@ -11,5 +11,5 @@ struct {
 	char **argv;
 } notify_info;
 
-/* clean up sockets */
-void cleanup(void);
+/* shut down the main loop */
+void notify_shutdown(void);

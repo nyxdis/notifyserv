@@ -22,6 +22,7 @@
 #include "preferences.h"
 
 static int daemonise(void);
+static void cleanup(void);
 
 static void ns_sighandler(int sig);
 static void ns_open_signal_pipe(void);
@@ -100,6 +101,12 @@ static int daemonise(void)
 	return 0;
 }
 
+/* shut down the main loop */
+void notify_shutdown(void)
+{
+	g_main_loop_quit(loop);
+}
+
 /* Cleanup handler, frees still used data */
 void cleanup(void)
 {
@@ -167,6 +174,6 @@ static gboolean ns_signal_parse(GIOChannel *source,
 	}
 
 	g_message("Received signal %s, exiting.", buf);
-	g_main_loop_quit(loop);
+	notify_shutdown();
 	return TRUE;
 }

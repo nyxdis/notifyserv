@@ -129,15 +129,15 @@ static void irc_parse(const gchar *line)
 		}
 
 		g_warning("[IRC] Received error: %s", &line[7]);
-		cleanup();
-		exit(EXIT_FAILURE);
+		notify_shutdown();
+		return;
 	}
 
 	snprintf(tmp,IRC_MAX,"433 * %s :Nickname is already in use.\r",prefs.irc_nick);
 	if(strstr(line,tmp)) {
 		g_critical("[IRC] Nickname is already in use.");
-		cleanup();
-		exit(EXIT_FAILURE);
+		notify_shutdown();
+		return;
 	}
 
 	if(strncmp(line,"PING :",6) == 0)
@@ -201,8 +201,8 @@ static void irc_parse(const gchar *line)
 					nick, ident, host);
 			irc_write("QUIT :Dying");
 			free(channel);
-			cleanup();
-			exit(EXIT_SUCCESS);
+			notify_shutdown();
+			return;
 		}
 
 		snprintf(tmp,IRC_MAX,"PRIVMSG %s :!reboot\r",channel);
@@ -210,7 +210,7 @@ static void irc_parse(const gchar *line)
 			free(channel);
 			g_message("Rebooting as requested by %s (%s@%s)"
 					" on IRC.", nick, ident, host);
-			cleanup();
+			notify_shutdown();
 			execv(notify_info.argv[0],notify_info.argv);
 		}
 		free(channel);
