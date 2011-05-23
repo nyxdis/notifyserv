@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 #include <glib.h>
+#include <glib-object.h>
 
 #include "config.h"
 #include "irc.h"
@@ -34,6 +35,8 @@ static GMainLoop *loop;
 int main(int argc, char *argv[])
 {
 	struct sigaction sa;
+
+	g_type_init();
 
 	notify_info.argv = argv;
 
