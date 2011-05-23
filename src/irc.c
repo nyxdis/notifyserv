@@ -142,6 +142,7 @@ static void irc_parse(const gchar *line)
 	if (strstr(line, tmp)) {
 		g_critical("[IRC] Nickname is already in use.");
 		g_free(tmp);
+		tmp = NULL;
 		notify_shutdown();
 		return;
 	}
@@ -157,6 +158,7 @@ static void irc_parse(const gchar *line)
 	if (strstr(line, tmp))
 	{
 		g_free(tmp);
+		tmp = NULL;
 		g_message("[IRC] Connection complete.");
 		for (guint i = 0; prefs.irc_chans[i]; i++) {
 			g_message("[IRC] Joining %s.", prefs.irc_chans[i]);

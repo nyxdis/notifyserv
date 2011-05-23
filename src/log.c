@@ -19,7 +19,7 @@ void notify_log(G_GNUC_UNUSED const gchar *log_domain, GLogLevelFlags log_level,
 		const gchar *message, G_GNUC_UNUSED gpointer user_data)
 {
 	GDateTime *datetime;
-	char *ts;
+	gchar *ts;
 
 	if (log_level > prefs.verbosity)
 		return;
