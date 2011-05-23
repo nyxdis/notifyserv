@@ -56,6 +56,9 @@ void init_preferences(int argc, char *argv[])
 			print_version, "Print the version", NULL },
 		{ NULL, 0, 0, 0, NULL, NULL, NULL }
 	};
+
+	/* needs to be set before parsing so the callback works */
+	prefs.verbosity = G_LOG_LEVEL_CRITICAL;
 	context = g_option_context_new("Connect to IRC and relay every "
 			"message received on the listener");
 	g_option_context_add_main_entries(context, entries, NULL);
@@ -87,6 +90,13 @@ static gboolean set_verbosity(G_GNUC_UNUSED const gchar *option_name,
 		G_GNUC_UNUSED gpointer data,
 		G_GNUC_UNUSED GError **error)
 {
+	if (prefs.verbosity == G_LOG_LEVEL_CRITICAL)
+		prefs.verbosity = G_LOG_LEVEL_WARNING;
+	else if (prefs.verbosity == G_LOG_LEVEL_WARNING)
+		prefs.verbosity = G_LOG_LEVEL_MESSAGE;
+	else if (prefs.verbosity == G_LOG_LEVEL_MESSAGE)
+		prefs.verbosity = G_LOG_LEVEL_DEBUG;
+
 	return TRUE;
 }
 
