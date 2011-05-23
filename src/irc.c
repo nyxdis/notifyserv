@@ -19,6 +19,7 @@ static void irc_connect_cb(GSocketClient *client, GAsyncResult *result,
 static void irc_schedule_reconnect(void);
 static void irc_source_attach(void);
 static gboolean irc_callback(gpointer user_data);
+static void irc_parse(const gchar *line);
 
 static struct {
 	GSocketConnection *connection;
@@ -55,11 +56,9 @@ static void irc_write(const gchar *fmt, ...)
 }
 
 /* Prepend 'PRIVMSG chan :' and send that to irc_write */
-void irc_say(const char *channel, const char *string)
+void irc_say(const gchar *channel, const gchar *string)
 {
-	char tmp[IRC_MAX];
-	snprintf(tmp,IRC_MAX,"PRIVMSG %s :%s",channel,string);
-	irc_write(tmp);
+	irc_write("PRIVMSG %s :%s", channel, string);
 }
 
 /* Connect to the IRC server */
@@ -107,7 +106,7 @@ static void irc_connect_cb(GSocketClient *client, GAsyncResult *result,
 }
 
 /* Parse IRC input */
-void irc_parse(const char *line)
+static void irc_parse(const gchar *line)
 {
 	char *channel, tmp[IRC_MAX];
 	char *nick, *ident, *host;

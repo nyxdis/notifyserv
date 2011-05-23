@@ -12,8 +12,5 @@
 /* Connect to IRC */
 gboolean irc_connect(G_GNUC_UNUSED gpointer data);
 
-/* Parse input read on the IRC sockfd */
-void irc_parse(const char *string);
-
 /* Send text to an IRC channel */
 void irc_say(const char *channel, const char *string);
