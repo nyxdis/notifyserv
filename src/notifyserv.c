@@ -115,15 +115,9 @@ int main(int argc, char *argv[])
 				break;
 		}
 
-	/* Open the log file when forking or log to stdout when opening failed */
-	if(prefs.fork) {
-		if(!(notify_info.log_fp = fopen("notifyserv.log","a"))) {
-			perror("Unable to open notifyserv.log for logging");
-			exit(EXIT_FAILURE);
-		}
-	}
-
 	if(!chanc || !prefs.irc_server) print_usage(argv[0],EXIT_FAILURE);
+
+	log_init();
 
 	/* Fork when wanted */
 	if(prefs.fork) daemonise();
@@ -178,7 +172,6 @@ void cleanup(void)
 	free(prefs.irc_ident);
 	free(prefs.irc_nick);
 	free(prefs.irc_server);
-	if(prefs.fork) fclose(notify_info.log_fp);
 	if(prefs.sock_path) unlink(prefs.sock_path);
 	free(prefs.sock_path);
 }

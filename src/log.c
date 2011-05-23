@@ -12,6 +12,8 @@
 
 #include "notifyserv.h"
 
+static FILE *log_fp;
+
 /* Logging function */
 void notify_log(G_GNUC_UNUSED const gchar *log_domain, GLogLevelFlags log_level,
 		const gchar *message, G_GNUC_UNUSED gpointer user_data)
@@ -23,10 +25,10 @@ void notify_log(G_GNUC_UNUSED const gchar *log_domain, GLogLevelFlags log_level,
 	if (log_level > prefs.verbosity)
 		return;
 
-	if (!prefs.fork)
+	if (!prefs.fork || !log_fp)
 		fp = stdout;
 	else
-		fp = notify_info.log_fp;
+		fp = log_fp;
 
 
 	datetime = g_date_time_new_now_local();
@@ -37,4 +39,17 @@ void notify_log(G_GNUC_UNUSED const gchar *log_domain, GLogLevelFlags log_level,
 	fputs(message, fp);
 	fputs("\n", fp);
 	fflush(fp);
+}
+
+void log_init(void)
+{
+	log_fp = fopen("notifyserv.log", "a");
+	if (!log_fp)
+		g_critical("Unable to open notifyserv.log for logging");
+}
+
+void log_cleanup(void)
+{
+	fclose(log_fp);
+
 }

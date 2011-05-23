@@ -42,7 +42,6 @@ struct {
 
 /* Internal data */
 struct {
-	FILE *log_fp;
 	char **argv;
 } notify_info;
 
