@@ -101,7 +101,7 @@ static void irc_connect_cb(GSocketClient *client, GAsyncResult *result,
 	}
 
 	irc.connection = g_socket_client_connect_finish(client, result, &error);
-	if (irc.connection) {
+	if (!irc.connection) {
 		g_warning("Failed to connect to IRC: %s", error->message);
 		g_error_free(error);
 		irc_schedule_reconnect();
