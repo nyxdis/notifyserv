@@ -16,112 +16,66 @@
 #include "config.h"
 #include "preferences.h"
 
-static void print_usage(const char *exec, int retval);
-static void print_version(void);
+static gboolean set_verbosity(const gchar *option_name, const gchar *value, gpointer data, GError **error);
+static gboolean print_version(const gchar *option_name, const gchar *value, gpointer data, GError **error);
 
 void init_preferences(int argc, char *argv[])
 {
-	int c, chanc = 0, pos = 0;
+	GError *error = NULL;
+	GOptionContext *context;
+	gchar **channels = NULL, *ident = PACKAGE, *listen_address = "localhost", *nick = PACKAGE_NAME, *irc_server = NULL, *listen_path = NULL;
+	gboolean foreground = FALSE;
+	gint port = 8675;
+	GOptionEntry entries[] = {
+		{ "channel", 'c', 0, G_OPTION_ARG_STRING_ARRAY, &channels, "Output channel(s), may be given more than once", "channel" },
+		{ "foreground", 'f', 0, G_OPTION_ARG_NONE, &foreground, "Run in foreground", NULL },
+		{ "ident", 'i', 0, G_OPTION_ARG_STRING, &ident, "IRC ident (optional, " PACKAGE " by default)", "ident" },
+		{ "listen", 'l', 0, G_OPTION_ARG_STRING, &listen_address, "Listen on the specified address (optional, localhost by default)", "address" },
+		{ "nick", 'n', 0, G_OPTION_ARG_STRING, &nick, "IRC nick (optional, " PACKAGE_NAME " by default)", "nick" },
+		{ "port", 'p', 0, G_OPTION_ARG_INT, &port, "Listening port (optional, 8675 by default)", "port" },
+		{ "irc-server", 's', 0, G_OPTION_ARG_STRING, &irc_server, "IRC server, default port is 6667", "address[:port]" },
+		{ "unix-path", 'u', 0, G_OPTION_ARG_FILENAME, &listen_path, "Path to UNIX domain socket", "path" },
+		{ "verbose", 'v', G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, set_verbosity, "Increase logging verbosity, may be given more than once", NULL },
+		{ "version", 'V', G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, print_version, "Print the version", NULL },
+		{ NULL, 0, 0, 0, NULL, NULL, NULL }
+	};
+	context = g_option_context_new("Connect to IRC and relay every message received on the listener");
+	g_option_context_add_main_entries(context, entries, NULL);
+	if (!g_option_context_parse(context, &argc, &argv, &error)) {
+		g_warning("Parsing command-line options failed: %s", error->message);
+		g_error_free(error);
+	}
+	g_option_context_free(context);
 
-	/* Set defaults */
-	prefs.bind_address = g_strdup("localhost");
-	prefs.bind_port = 8675;
-	prefs.fork = TRUE;
-	prefs.irc_ident = g_strdup(PACKAGE);
-	prefs.irc_nick = g_strdup(PACKAGE_NAME);
-	prefs.irc_port = 6667;
-	prefs.sock_path = NULL;
+	if (!channels)
+		prefs.irc_chans = g_strdupv(channels);
 
-	/* Parse command-line options */
-	while((c = getopt(argc,argv,"c:dfhi:l:n:p:s:u:vV")) != -1)
-		switch(c) {
-			char *tmp;
-			case 'c':
-				if(!(prefs.irc_chans = malloc(strlen(optarg)*2)))
-					exit(EXIT_FAILURE);
-				tmp = strtok(optarg,",");
-				do {
-					prefs.irc_chans[chanc] = tmp;
-					chanc++;
-				} while((tmp = strtok(NULL,",")));
-				break;
-			case 'd':
-				prefs.bind_address = NULL;
-				break;
-			case 'f':
-				prefs.fork = FALSE;
-				break;
-			case 'h':
-				print_usage(argv[0],EXIT_SUCCESS);
-				break;
-			case 'i':
-				free(prefs.irc_ident);
-				prefs.irc_ident = strdup(optarg);
-				break;
-			case 'l':
-				free(prefs.bind_address);
-				prefs.bind_address = strdup(optarg);
-				break;
-			case 'p':
-				if(strtol(optarg,NULL,10) > USHRT_MAX) break;
-				prefs.bind_port = strtol(optarg,NULL,10);
-				break;
-			case 'n':
-				free(prefs.irc_nick);
-				prefs.irc_nick = strdup(optarg);
-				break;
-			case 's':
-				if(strstr(optarg,":")) {
-					pos = strcspn(optarg,":");
-					prefs.irc_server = malloc(pos+1);
-					strncpy(prefs.irc_server,optarg,pos);
-					prefs.irc_server[pos] = '\0';
-					if(strtol(&optarg[pos+1],NULL,10) > USHRT_MAX) break;
-					prefs.irc_port = strtol(&optarg[pos+1],NULL,10);
-					pos = 0;
-				} else {
-					prefs.irc_server = strdup(optarg);
-				}
-				break;
-			case 'u':
-				prefs.sock_path = strdup(optarg);
-				break;
-			case 'v':
-				prefs.verbosity++;
-				break;
-			case 'V':
-				print_version();
-				break;
-		}
+	if (!irc_server)
+		g_critical("No IRC server defined");
 
-	if(!chanc || !prefs.irc_server) print_usage(argv[0],EXIT_FAILURE);
-
-	prefs.irc_chans[chanc] = NULL;
+	prefs.irc_chans = g_strdupv(channels);
+	prefs.irc_server = g_strdup(irc_server);
+	prefs.irc_ident = g_strdup(ident);
+	prefs.bind_address = g_strdup(listen_address);
+	prefs.irc_nick = g_strdup(nick);
+	prefs.sock_path = g_strdup(listen_path);
+	prefs.fork = !foreground;
+	prefs.bind_port = port;
 }
 
-/* Help output */
-static void print_usage(const char *exec, int retval)
+static gboolean set_verbosity(G_GNUC_UNUSED const gchar *option_name,
+		G_GNUC_UNUSED const gchar *value,
+		G_GNUC_UNUSED gpointer data,
+		G_GNUC_UNUSED GError **error)
 {
-	printf("Usage: %s -c <channel> -s <address>[:port] [OPTIONS]\n",exec);
-	puts("Connect to IRC and relay every message received on the listener\n");
-	puts("Options:");
-	puts("\t-c <channel>\tOutput channel(s), may be given more than once");
-	puts("\t-d\t\tDisable TCP listener");
-	puts("\t-f\t\tRun in foreground");
-	puts("\t-h\t\tThis help");
-	puts("\t-i <ident>\tIRC ident (optional, " PACKAGE " by default)");
-	puts("\t-l <address>\tListen on the specified address (optional, localhost by default)");
-	puts("\t-n <nick>\tIRC nick (optional, " PACKAGE_NAME " by default)");
-	puts("\t-p <port>\tListening port (optional, 8675 by default)");
-	puts("\t-s <address>[:port]\tIRC server, default port is 6667");
-	puts("\t-u <path>\tPath to UNIX domain socket");
-	puts("\t-v\t\tIncrease logging verbosity, may be given more than once");
-	puts("\t-V\t\tPrint the version");
-	exit(retval);
+	return TRUE;
 }
 
 /* Print the version */
-static void print_version(void)
+static gboolean print_version(G_GNUC_UNUSED const gchar *option_name,
+		G_GNUC_UNUSED const gchar *value,
+		G_GNUC_UNUSED gpointer data,
+		G_GNUC_UNUSED GError **error)
 {
 	puts(PACKAGE_STRING "\n");
 	puts("Copyright (c) 2008-2011, Christoph Mende <mende.christoph@gmail.com>");
