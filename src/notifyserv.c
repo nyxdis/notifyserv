@@ -42,16 +42,6 @@ int main(int argc, char *argv[])
 
 	g_log_set_default_handler(notify_log, NULL);
 
-	/* Signal handler */
-	ns_open_signal_pipe();
-	sa.sa_handler = ns_sighandler;
-	sigfillset(&sa.sa_mask);
-	sa.sa_flags = SA_RESTART;
-	sigaction(SIGINT, &sa, NULL);
-	sigaction(SIGTERM, &sa, NULL);
-	sigaction(SIGQUIT, &sa, NULL);
-	sigaction(SIGHUP, &sa, NULL);
-
 	init_preferences(argc, argv);
 
 	log_init();
@@ -81,6 +71,16 @@ int main(int argc, char *argv[])
 				"retrying IRC connection");
 		sleep(60);
 	}
+
+	/* Signal handler */
+	ns_open_signal_pipe();
+	sa.sa_handler = ns_sighandler;
+	sigfillset(&sa.sa_mask);
+	sa.sa_flags = SA_RESTART;
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGTERM, &sa, NULL);
+	sigaction(SIGQUIT, &sa, NULL);
+	sigaction(SIGHUP, &sa, NULL);
 
 	g_main_loop_run(loop);
 
