@@ -41,7 +41,7 @@ gboolean start_listener(void)
 		if (!g_socket_listener_add_address(
 					G_SOCKET_LISTENER(listen.service),
 					address, G_SOCKET_TYPE_STREAM,
-					G_SOCKET_PROTOCOL_TCP, NULL, NULL,
+					G_SOCKET_PROTOCOL_DEFAULT, NULL, NULL,
 					&error)) {
 			g_warning("Failed to bind to Unix socket %s: %s",
 					prefs.sock_path, error->message);
