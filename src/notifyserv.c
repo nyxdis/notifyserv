@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 
 	loop = g_main_loop_new(NULL, FALSE);
 
-	g_message(PACKAGE_STRING "started");
+	g_message(PACKAGE_STRING " started");
 
 	/* Fire up listening sockets */
 	if (!start_listener()) {
