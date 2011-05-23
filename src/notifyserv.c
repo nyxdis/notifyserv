@@ -37,15 +37,15 @@ int main(int argc, char *argv[])
 
 	notify_info.argv = argv;
 
-	g_log_set_default_handler(notify_log, NULL);
-
 	init_preferences(argc, argv);
-
-	log_init();
 
 	/* Fork when wanted */
 	if (prefs.fork)
 		daemonize();
+
+	log_init();
+
+	g_log_set_default_handler(notify_log, NULL);
 
 	g_message(PACKAGE_STRING "started");
 
