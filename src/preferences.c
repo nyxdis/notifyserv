@@ -67,7 +67,7 @@ void init_preferences(int argc, char *argv[])
 	g_option_context_free(context);
 
 	if (!channels)
-		prefs.irc_chans = g_strdupv(channels);
+		g_critical("No IRC channels defined");
 
 	if (!irc_server)
 		g_critical("No IRC server defined");
