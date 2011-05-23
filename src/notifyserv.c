@@ -50,6 +50,8 @@ int main(int argc, char *argv[])
 
 	g_log_set_default_handler(notify_log, NULL);
 
+	loop = g_main_loop_new(NULL, FALSE);
+
 	g_message(PACKAGE_STRING "started");
 
 	/* Fire up listening sockets */
