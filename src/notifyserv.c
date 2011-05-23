@@ -21,7 +21,7 @@
 static void daemonize(void);
 static void cleanup(void);
 
-static void ns_sighandler(int sig);
+static void ns_sighandler(gint sig);
 static void ns_open_signal_pipe(void);
 static void ns_close_signal_pipe(void);
 static gboolean ns_signal_parse(GIOChannel *source, GIOCondition condition,
@@ -105,7 +105,7 @@ void cleanup(void)
 /* Signal handler function, called by sigaction for SIGINT, SIGTERM and SIGQUIT
  * This function is also called when SIGHUP is received, but doesn't actually
  * do anything in that case (yet) */
-static void ns_sighandler(int sig)
+static void ns_sighandler(gint sig)
 {
 	if (sig == SIGHUP) {
 		g_message("Received signal %d, ignored.", sig);

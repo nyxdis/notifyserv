@@ -14,8 +14,10 @@
 #include "config.h"
 #include "preferences.h"
 
-static gboolean set_verbosity(const gchar *option_name, const gchar *value, gpointer data, GError **error);
-static gboolean print_version(const gchar *option_name, const gchar *value, gpointer data, GError **error);
+static gboolean set_verbosity(const gchar *option_name, const gchar *value,
+		gpointer data, GError **error);
+static gboolean print_version(const gchar *option_name, const gchar *value,
+		gpointer data, GError **error);
 
 void init_preferences(int argc, char *argv[])
 {
