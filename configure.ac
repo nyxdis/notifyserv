@@ -13,6 +13,7 @@ AC_PROG_CC_C99
 PKG_PROG_PKG_CONFIG([0.24])
 PKG_CHECK_MODULES([glib], [glib-2.0 >= 2.28])
 PKG_CHECK_MODULES([gio], [gio-2.0 >= 2.28])
+PKG_CHECK_MODULES([gio_unix], [gio-unix-2.0 >= 2.28])
 
 # Checks for header files.
 AC_CHECK_HEADERS([fcntl.h limits.h netdb.h netinet/in.h stdlib.h string.h sys/socket.h unistd.h])

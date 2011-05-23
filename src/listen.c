@@ -6,141 +6,144 @@
  */
 
 
-#include <errno.h>
-#include <sys/un.h>
-#include "notifyserv.h"
-
-#ifdef HAVE_FCNTL_H
-#include <fcntl.h>
-#endif
-#ifdef HAVE_NETDB_H
-#include <netdb.h>
-#endif
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-#ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
 
-/* Start a listening Unix domain socket */
-static int listen_unix(void)
-{
-	int sockfd;
-	struct sockaddr_un addr;
+#include <glib.h>
+#include <gio/gio.h>
+#include <gio/gunixsocketaddress.h>
 
-	if((sockfd = socket(AF_UNIX,SOCK_STREAM,0)) < 0)
-		return -1;
+#include "notifyserv.h"
+#include "listen.h"
 
-	addr.sun_family = AF_UNIX;
-	strncpy(addr.sun_path,prefs.sock_path,strlen(prefs.sock_path) + 1);
+#define BUF_SIZE 1024
 
-	if(fcntl(sockfd,F_SETFL,fcntl(sockfd,F_GETFL,0) | O_NONBLOCK) < 0)
-		return -1;
+static gboolean listen_accept(GSocketService *service,
+		GSocketConnection *connection, GObject *src_object,
+		gpointer user_data);
+static gboolean listen_forward(GSocketConnection *connection);
+static void listen_parse(const gchar *line);
 
-	unlink(addr.sun_path);
-
-	if(bind(sockfd,(struct sockaddr *)&addr,strlen(addr.sun_path) + sizeof addr.sun_family) < 0)
-		return -1;
-	if(listen(sockfd,5) < 0)
-		return -1;
-
-	g_message("Listening on Unix domain socket %s", prefs.sock_path);
-	return sockfd;
-}
-
-/* Start a listening TCP socket */
-static int listen_tcp(void)
-{
-	int sockfd, ret;
-	char service[6];
-	struct addrinfo hints, *result, *rp;
-
-	memset(&hints,0,sizeof hints);
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	sprintf(service,"%hu",prefs.bind_port);
-
-	if((ret = getaddrinfo(prefs.bind_address,service,&hints,&result)) != 0) {
-		g_critical("[Listener] Failed to get address information: %s",
-				gai_strerror(ret));
-		return -1;
-	}
-	if(!result) return -1;
-
-	for(rp = result;rp;rp = rp->ai_next) {
-		if((sockfd = socket(rp->ai_family,rp->ai_socktype,
-			rp->ai_protocol)) < 0) continue;
-
-		if(bind(sockfd,rp->ai_addr,rp->ai_addrlen) == 0)
-			break;
-
-		close(sockfd);
-	}
-	freeaddrinfo(result);
-
-	if(fcntl(sockfd,F_SETFL,fcntl(sockfd,F_GETFL,0) | O_NONBLOCK) < 0)
-		return -1;
-
-	if(listen(sockfd,5) < 0)
-		return -1;
-
-	g_message("Listening on %s:%hu", prefs.bind_address, prefs.bind_port);
-
-	return sockfd;
-}
+static struct {
+	GSocketService *service;
+	GSource *callback_source;
+} listen;
 
 /* Start specified listening sockets */
-int start_listener(void)
+gboolean start_listener(void)
 {
-	if(prefs.sock_path) {
-		if((notify_info.listen_unix_sockfd = listen_unix()) < 0)
-			return -1;
+	listen.service = g_socket_service_new();
+
+	if (prefs.sock_path) {
+		GError *error = NULL;
+		GSocketAddress *address;
+
+		address = g_unix_socket_address_new(prefs.sock_path);
+
+		if (!g_socket_listener_add_address(
+					G_SOCKET_LISTENER(listen.service),
+					address, G_SOCKET_TYPE_STREAM,
+					G_SOCKET_PROTOCOL_TCP, NULL, NULL,
+					&error)) {
+			g_warning("Failed to bind to Unix socket %s: %s",
+					prefs.sock_path, error->message);
+			g_error_free(error);
+		} else {
+			g_message("Listening on Unix domain socket %s", prefs.sock_path);
+		}
 	}
-	if(prefs.bind_address) {
-		if((notify_info.listen_tcp_sockfd = listen_tcp()) < 0)
-			return -1;
-		free(prefs.bind_address);
+
+	if (prefs.bind_address) {
+		GError *error = NULL;
+		GInetAddress *address;
+		GSocketAddress *saddress;
+
+		address = g_inet_address_new_from_string(prefs.bind_address);
+		saddress = g_inet_socket_address_new(address, prefs.bind_port);
+
+		if (!g_socket_listener_add_address(
+					G_SOCKET_LISTENER(listen.service),
+					saddress, G_SOCKET_TYPE_STREAM,
+					G_SOCKET_PROTOCOL_TCP, NULL, NULL,
+					&error)) {
+			g_warning("Failed to bind to address %s: %s",
+					prefs.bind_address, error->message);
+			g_error_free(error);
+		} else {
+			g_message("Listening on %s:%hu", prefs.bind_address, prefs.bind_port);
+		}
 	}
-	if(!prefs.sock_path && !prefs.bind_address) {
+
+	if (!prefs.sock_path && !prefs.bind_address) {
 		g_critical("No Unix domain socket path defined and TCP sockets"
 				" disabled.");
-		return -1;
+		return FALSE;
 	}
-	return 0;
+
+	g_signal_connect(listen.service, "incoming",
+			G_CALLBACK(listen_accept), NULL);
+	g_socket_service_start(listen.service);
+	return TRUE;
 }
 
 /* Parse input from listening sockets */
-void listen_forward(char *input)
+static gboolean listen_accept(G_GNUC_UNUSED GSocketService *service,
+		GSocketConnection *connection,
+		G_GNUC_UNUSED GObject *src_object,
+		G_GNUC_UNUSED gpointer user_data)
 {
-	char *channel, *line, *saveptr = NULL;
-	int i;
+	GSocket *socket = g_socket_connection_get_socket(connection);
+	listen.callback_source = g_socket_create_source(socket, G_IO_IN, NULL);
+	g_source_set_callback(listen.callback_source,
+			(GSourceFunc) listen_forward, connection, NULL);
+	g_source_attach(listen.callback_source, NULL);
+	return TRUE;
+}
+
+static gboolean listen_forward(GSocketConnection *connection)
+{
+	GError *error = NULL;
+	GInputStream *istream;
+	gchar *buf, **lines;
+	gssize len;
 
 	/* We cannot forward data when we're not connected to IRC */
 	if(notify_info.irc_connected == false)
-		return;
+		return FALSE;
 
-	line = strtok_r(input,"\n",&saveptr);
-	do {
-		if(line[0] != '#') {
-			if(line[0] != '*')
-				g_message("Received deprecated input format, "
-						"the first word should be the "
-						"channel or *");
-			for(i=0;prefs.irc_chans[i];i++)
-				irc_say(prefs.irc_chans[i],line);
-			g_message("Forwarded data to IRC: %s", line);
-		} else {
-			i = strcspn(line," ");
-			channel = malloc(i+1);
-			strncpy(channel,line,i);
-			channel[i] = '\0';
-			irc_say(channel,&line[i]);
-			g_message("Forwarded data to IRC channel %s:%s",
-					channel, &line[i]);
-		}
-	} while((line = strtok_r(NULL,"\n",&saveptr)));
+	istream = g_io_stream_get_input_stream(G_IO_STREAM(connection));
+	buf = g_malloc0(BUF_SIZE);
+	len = g_input_stream_read(istream, buf, BUF_SIZE, NULL, &error);
+
+	if (len < 0) {
+		g_warning("Failed to read from client: %s", error->message);
+		g_error_free(error);
+	} else if (len > 0) {
+		lines = g_strsplit(buf, "\r\n", 0);
+		for (guint i = 0; lines[i] != NULL; i++)
+			listen_parse(lines[i]);
+		g_strfreev(lines);
+	}
+
+	/* close socket */
+	return TRUE;
+}
+
+static void listen_parse(const gchar *line)
+{
+	if(line[0] != '#') {
+		if(line[0] != '*')
+			g_message("Received deprecated input format, the first"
+					" word should be the channel or *");
+
+		for (guint i = 0; prefs.irc_chans[i]; i++)
+			irc_say(prefs.irc_chans[i], line);
+		g_message("Forwarded data to IRC: %s", line);
+	} else {
+		gushort i = strcspn(line," ");
+		gchar *channel = g_strndup(line, i);
+		irc_say(channel, &line[i]);
+		g_message("Forwarded data to IRC channel %s: %s", channel,
+				&line[i]);
+		g_free(channel);
+	}
 }
