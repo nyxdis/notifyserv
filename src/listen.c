@@ -82,6 +82,7 @@ gboolean start_listener(void)
 			g_message("Listening on %s:%hu", prefs.bind_address,
 					prefs.bind_port);
 		}
+		g_object_unref(saddress);
 	}
 
 	if (!prefs.sock_path && !prefs.bind_address) {
@@ -120,6 +121,8 @@ static gboolean listen_accept(G_GNUC_UNUSED GSocketService *service,
 			listen_parse(lines[i]);
 		g_strfreev(lines);
 	}
+
+	g_free(buf);
 
 	/* close socket */
 	return TRUE;

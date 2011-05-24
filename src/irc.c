@@ -72,6 +72,7 @@ void irc_say(const gchar *channel, const gchar *fmt, ...)
 		va_end(ap);
 
 		irc_write("PRIVMSG %s :%s", channel, tmp);
+		g_free(tmp);
 	} else {
 		g_warning("Cannot write to IRC: not connected");
 	}

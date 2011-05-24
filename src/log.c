@@ -28,6 +28,7 @@ void notify_log(G_GNUC_UNUSED const gchar *log_domain, GLogLevelFlags log_level,
 	ts = g_date_time_format(datetime, "%Y-%m-%d %H:%M:%S  ");
 	fputs(ts, log_fp);
 	g_free(ts);
+	g_date_time_unref(datetime);
 
 	fputs(message, log_fp);
 	fputs("\n", log_fp);
