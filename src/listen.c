@@ -21,7 +21,7 @@
 static gboolean listen_accept(GSocketService *service,
 		GSocketConnection *connection, GObject *src_object,
 		gpointer user_data);
-static void listen_parse(const gchar *line);
+static void listen_parse(const gchar *input);
 
 static struct {
 	GSocketService *service;
@@ -125,9 +125,9 @@ static gboolean listen_accept(G_GNUC_UNUSED GSocketService *service,
 	return TRUE;
 }
 
-static void listen_parse(const gchar *line)
+static void listen_parse(const gchar *input)
 {
-	line = g_strchomp(line);
+	gchar *line = g_strchomp(g_strdup(input));
 
 	if (line[0] != '#') {
 		if (line[0] != '*')
@@ -145,4 +145,5 @@ static void listen_parse(const gchar *line)
 				&line[i]);
 		g_free(channel);
 	}
+	g_free(line);
 }
