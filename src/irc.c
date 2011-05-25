@@ -199,6 +199,7 @@ static void irc_parse(const gchar *line)
 			g_free(nick);
 			g_free(ident);
 			g_free(host);
+			g_free(command);
 			notify_shutdown();
 			return;
 		}
@@ -210,6 +211,7 @@ static void irc_parse(const gchar *line)
 			g_free(nick);
 			g_free(ident);
 			g_free(host);
+			g_free(command);
 			notify_shutdown();
 			execv(notify_info.argv[0], notify_info.argv);
 		}
@@ -218,6 +220,7 @@ static void irc_parse(const gchar *line)
 		g_free(nick);
 		g_free(ident);
 		g_free(host);
+		g_free(command);
 	}
 }
 
