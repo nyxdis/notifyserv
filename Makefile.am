@@ -1,5 +1,4 @@
 bin_PROGRAMS = notifyserv
-dist_man_MANS = notifyserv.1
 
 notifyserv_SOURCES =	src/notifyserv.c src/notifyserv.h \
 			src/irc.c src/irc.h \
