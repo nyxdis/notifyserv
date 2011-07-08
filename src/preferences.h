@@ -24,6 +24,7 @@ struct {
 	gushort verbosity;
 } prefs;
 
-void init_preferences(int argc, char *argv[]);
+void	init_preferences	(int   argc,
+				 char *argv[]);
 
 #endif /* __PREFERENCES_H__ */

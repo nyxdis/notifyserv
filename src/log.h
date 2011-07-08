@@ -10,9 +10,11 @@
 
 #include <glib.h>
 
-void log_init(void);
-void notify_log(G_GNUC_UNUSED const gchar *log_domain, GLogLevelFlags log_level,
-		const gchar *message, G_GNUC_UNUSED gpointer user_data);
-void log_cleanup(void);
+void	log_init	(void);
+void	notify_log	(const gchar   *log_domain,
+			 GLogLevelFlags log_level,
+			 const gchar   *message,
+			 gpointer       user_data);
+void	log_cleanup	(void);
 
 #endif /* __LOG_H__ */

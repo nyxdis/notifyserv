@@ -11,9 +11,11 @@
 #include <glib.h>
 
 /* Connect to IRC */
-gboolean irc_connect(G_GNUC_UNUSED gpointer data);
+gboolean	irc_connect	(gpointer     data);
 
 /* Send text to an IRC channel */
-void irc_say(const gchar *channel, const gchar *fmt, ...);
+void		irc_say		(const gchar *channel,
+				 const gchar *fmt,
+				 ...);
 
 #endif /* __IRC_H__ */

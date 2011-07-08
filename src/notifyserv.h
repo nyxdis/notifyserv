@@ -14,6 +14,6 @@ struct {
 } notify_info;
 
 /* shut down the main loop */
-void notify_shutdown(void);
+void	notify_shutdown	(void);
 
 #endif /* __NOTIFYSERV_H__ */

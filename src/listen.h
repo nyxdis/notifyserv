@@ -11,6 +11,6 @@
 #include <glib.h>
 
 /* Initialize listeners, TCP and Unix domain sockets */
-gboolean start_listener(void);
+gboolean	start_listener	(void);
 
 #endif /* __LISTEN_H__ */
