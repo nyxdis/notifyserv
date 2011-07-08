@@ -5,18 +5,19 @@
  * All rights reserved. Released under the 2-clause BSD license.
  */
 
+#include "config.h"
 
-#include <stdlib.h>
-#include <unistd.h>
+#include "notifyserv.h"
 
 #include <glib.h>
 #include <glib-object.h>
 
-#include "config.h"
+#include <stdlib.h>
+#include <unistd.h>
+
 #include "irc.h"
 #include "listen.h"
 #include "log.h"
-#include "notifyserv.h"
 #include "preferences.h"
 
 static void daemonize(void);

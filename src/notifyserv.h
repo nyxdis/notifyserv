@@ -5,6 +5,8 @@
  * All rights reserved. Released under the 2-clause BSD license.
  */
 
+#ifndef __NOTIFYSERV_H__
+#define __NOTIFYSERV_H__
 
 /* Internal data */
 struct {
@@ -13,3 +15,5 @@ struct {
 
 /* shut down the main loop */
 void notify_shutdown(void);
+
+#endif /* __NOTIFYSERV_H__ */

@@ -5,14 +5,13 @@
  * All rights reserved. Released under the 2-clause BSD license.
  */
 
+#include "config.h"
 
-#include <stdlib.h>
-#include <stdio.h>
+#include "preferences.h"
 
 #include <glib.h>
-
-#include "config.h"
-#include "preferences.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 static gboolean set_verbosity(const gchar *option_name, const gchar *value,
 		gpointer data, GError **error);

@@ -5,6 +5,12 @@
  * All rights reserved. Released under the 2-clause BSD license.
  */
 
+#ifndef __LISTEN_H__
+#define __LISTEN_H__
+
+#include <glib.h>
 
 /* Initialize listeners, TCP and Unix domain sockets */
 gboolean start_listener(void);
+
+#endif /* __LISTEN_H__ */

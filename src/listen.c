@@ -5,15 +5,17 @@
  * All rights reserved. Released under the 2-clause BSD license.
  */
 
+#include "config.h"
 
-#include <string.h>
+#include "listen.h"
 
 #include <glib.h>
 #include <gio/gio.h>
 #include <gio/gunixsocketaddress.h>
 
+#include <string.h>
+
 #include "irc.h"
-#include "listen.h"
 #include "preferences.h"
 
 #define BUF_SIZE 1024

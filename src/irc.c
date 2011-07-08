@@ -5,14 +5,15 @@
  * All rights reserved. Released under the 2-clause BSD license.
  */
 
+#include "config.h"
 
-#include <string.h>
+#include "irc.h"
 
 #include <glib.h>
 #include <gio/gio.h>
 
-#include "config.h"
-#include "irc.h"
+#include <string.h>
+
 #include "notifyserv.h"
 #include "preferences.h"
 

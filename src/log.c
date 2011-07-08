@@ -5,10 +5,13 @@
  * All rights reserved. Released under the 2-clause BSD license.
  */
 
+#include "config.h"
 
-#include <stdio.h>
+#include "log.h"
 
 #include <glib.h>
+
+#include <stdio.h>
 
 #include "preferences.h"
 

@@ -5,6 +5,10 @@
  * All rights reserved. Released under the 2-clause BSD license.
  */
 
+#ifndef __PREFERENCES_H__
+#define __PREFERENCES_H__
+
+#include <glib.h>
 
 struct {
 	gboolean fork;
@@ -21,3 +25,5 @@ struct {
 } prefs;
 
 void init_preferences(int argc, char *argv[]);
+
+#endif /* __PREFERENCES_H__ */
