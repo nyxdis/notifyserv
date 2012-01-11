@@ -174,11 +174,18 @@ static void irc_parse(const gchar *line)
 		gchar *nick, *ident, *host, *channel, *command;
 
 		info = g_strsplit_set(line, ":!@ ", 9);
+		command = g_strdup(info[8]);
+
+		/* command is NULL when there was no command */
+		if (!command) {
+			g_strfreev(info);
+			return;
+		}
+
 		nick = g_strdup(info[1]);
 		ident = g_strdup(info[2]);
 		host = g_strdup(info[3]);
 		channel = g_strdup(info[5]);
-		command = g_strdup(info[8]);
 		g_strfreev(info);
 
 		/* These rely on channel being initialized */
